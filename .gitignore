@@ -47,3 +47,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# data folder, use data locally only
+data/
+
+# results folder, store results locally only
+results/
