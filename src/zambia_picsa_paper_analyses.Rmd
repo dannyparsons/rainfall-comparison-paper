@@ -347,6 +347,7 @@ df <- gof_syear %>%
   arrange(metric, station)
 names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1, 
                                         nchar(names(df)[3:ncol(df)]) - 5))
+##! Table zm_total_metrics (Section 4.3.2.1)
 df %>% 
   select(metric, station, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
   kable() %>%
@@ -354,8 +355,6 @@ df %>%
   collapse_rows(columns = 1) %>%
   skable()
 ```
-
-### HERE NEXT
 
 ### Comparison Statistics for Number of rainy days
 
@@ -395,10 +394,10 @@ g <- ggplot(liv_year, aes(x = syear, y = n_rain, colour = Source)) +
   ggtitle("Gauge vs estimate August to July rain day frequency at Livingstone") +
   facet_wrap(~product)
 g
+##! Figure zm_liv_n (Section 4.3.2.1)
 ggsave(here("results", paste0("zambia_", "livingstone_", "n_rain", ".png")),
        width = 12, height = 6)
 ```
-
 
 ```{r liv_yearly_n_rain_tables, results="asis"}
 # stats_tables(gof_syear, "gof__n_rain")
@@ -412,20 +411,19 @@ df <- gof_syear %>%
   mutate(metric = factor(metric, levels = c("r", "pbias", "MAE"))) %>%
   select(station, product, metric, value) %>%
   mutate(value = ifelse(metric == "r", format(value, digits = 2), 
-                        format(value, digits = 0))) %>%
+                        round(value))) %>%
   pivot_wider(names_from = "product", values_from = "value") %>%
   arrange(metric, station)
 names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1, 
                                         nchar(names(df)[3:ncol(df)]) - 5))
+##! Table zm_liv_n_metric (Section 4.3.2.1)
 df %>% 
   select(metric, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
   kable() %>%
   column_spec(column = 4, border_right = TRUE) %>%
   collapse_rows(columns = 1) %>%
   skable()
-
 ```
-
 
 ```{r liv_yearly_mean_rain_plots}
 liv_year <- gof_pr %>% 
@@ -457,6 +455,7 @@ g <- ggplot(liv_year, aes(x = syear, y = mean_rain, colour = Source)) +
   ggtitle("Gauge vs estimate August to July mean rain intensity at Livingstone") +
   facet_wrap(~product)
 g
+##! Figure zm_liv_mean (Section 4.3.2.1)
 ggsave(here("results", paste0("zambia_", "livingstone_", "mean_rain", ".png")),
        width = 12, height = 6)
 ```
@@ -495,44 +494,46 @@ for(s in seq_along(stations)) {
     dat_prod <- dat %>%
       filter(product %in% c("station", products[i])) %>% 
       filter(!is.na(rain) & !is.na(pr_rain))
-    zero_order_station <- glm(f_zero_order_station, data = dat_prod, family = binomial)
-    zero_order_product <- glm(f_zero_order_product, data = dat_prod, family = binomial)
-    #print(anova(zero_order_station, test="Chisq"))
-    predict_df[[paste0("station", "_", products[i])]] <- predict(zero_order_station, 
-                                                                 newdata = predict_df, 
-                                                                 type = "response")
-    predict_df[[products[i]]] <- predict(zero_order_product, newdata = predict_df, 
-                                         type = "response")
+    zero_order_station <- glm(f_zero_order_station, data = dat_prod, 
+                              family = binomial)
+    zero_order_product <- glm(f_zero_order_product, data = dat_prod, 
+                              family = binomial)
+    predict_df[[paste0("station", "_", products[i])]] <-
+      predict(zero_order_station, newdata = predict_df, type = "response")
+    predict_df[[products[i]]] <- 
+      predict(zero_order_product, newdata = predict_df, type = "response")
     
-    f_zero_order_product_2thres <- update.formula(f_zero_order_station, pr_rainday2 ~ .)
-    f_zero_order_product_3thres <- update.formula(f_zero_order_station, pr_rainday3 ~ .)
-    f_zero_order_product_4thres <- update.formula(f_zero_order_station, pr_rainday4 ~ .)
-    f_zero_order_product_5thres <- update.formula(f_zero_order_station, pr_rainday5 ~ .)
-    f_zero_order_product_2max <- update.formula(f_zero_order_station, pr_rainday2max ~ .)
-    f_zero_order_product_3max <- update.formula(f_zero_order_station, pr_rainday3max ~ .)
-    f_zero_order_product_4max <- update.formula(f_zero_order_station, pr_rainday4max ~ .)
-    f_zero_order_product_5max <- update.formula(f_zero_order_station, pr_rainday5max ~ .)
+    f_zero_order_product_2thres <- update.formula(f_zero_order_station,
+                                                  pr_rainday2 ~ .)
+    f_zero_order_product_3thres <- update.formula(f_zero_order_station, 
+                                                  pr_rainday3 ~ .)
+    f_zero_order_product_4thres <- update.formula(f_zero_order_station, 
+                                                  pr_rainday4 ~ .)
+    f_zero_order_product_5thres <- update.formula(f_zero_order_station, 
+                                                  pr_rainday5 ~ .)
+    f_zero_order_product_2max <- update.formula(f_zero_order_station, 
+                                                pr_rainday2max ~ .)
+    f_zero_order_product_3max <- update.formula(f_zero_order_station, 
+                                                pr_rainday3max ~ .)
+    f_zero_order_product_4max <- update.formula(f_zero_order_station, 
+                                                pr_rainday4max ~ .)
+    f_zero_order_product_5max <- update.formula(f_zero_order_station, 
+                                                pr_rainday5max ~ .)
     fms <- list(f_zero_order_product_2max, f_zero_order_product_3max, 
                 f_zero_order_product_4max, f_zero_order_product_5max)
     fms_thres <- list(f_zero_order_product_2thres, f_zero_order_product_3thres,
                       f_zero_order_product_4thres, f_zero_order_product_5thres)
     mds <- list()
-    # for(j in 2:(2 + length(fms) - 1)) {
-    #   zero_order <- glm(fms[[j - 1]], data = dat_prod, family = binomial)
-    #   predict_df[[paste0(products[i], "_", j, "max")]] <- predict(zero_order, 
-    #                                                               newdata = predict_df, 
-    #                                                               type = "response")
-    # }
     for(j in 3:(3 + length(fms_thres) - 1)) {
       zero_order <- glm(fms_thres[[j - 2]], data = dat_prod, family = binomial)
-      predict_df[[paste0(products[i], "_", j, "thres")]] <- predict(zero_order,
-                                                                    newdata = predict_df,
-                                                                    type = "response")
+      predict_df[[paste0(products[i], "_", j, "thres")]] <- 
+        predict(zero_order, newdata = predict_df, type = "response")
     }
   }
   
-  predict_stack <- predict_df %>% melt(id.vars = c("station", "s_doy", "s_doy_date"), 
-                                       variable.name = "product", value.name = "prob")
+  predict_stack <- predict_df %>% 
+    melt(id.vars = c("station", "s_doy", "s_doy_date"),
+         variable.name = "product", value.name = "prob")
 
   predict_stack$product <- as.character(predict_stack$product)
   predict_stack$product2 <- predict_stack$product
@@ -541,9 +542,11 @@ for(s in seq_along(stations)) {
   predict_stack <- predict_stack %>% 
     mutate(type = ifelse(startsWith(product, "station"), "station1", type),
            type = ifelse(endsWith(product, "max"), 
-                         substr(product, nchar(product) - 3, nchar(product)), type),
+                         substr(product, nchar(product) - 3, nchar(product)), 
+                         type),
            type = ifelse(endsWith(product, "thres"), 
-                         substr(product, nchar(product) - 5, nchar(product)), type),
+                         substr(product, nchar(product) - 5, nchar(product)), 
+                         type),
            product2 = ifelse(startsWith(product, "station"), 
                              substr(product, 9, nchar(product)), product2),
            product2 = ifelse(endsWith(product, "max"), 
@@ -552,16 +555,9 @@ for(s in seq_along(stations)) {
                              substr(product, 1, nchar(product) - 7), product2)
            )
   
-  predict_stack$type <- factor(predict_stack$type, levels = unique(predict_stack$type))
+  predict_stack$type <- factor(predict_stack$type, 
+                               levels = unique(predict_stack$type))
   predict_stack_lst[[length(predict_stack_lst) + 1]] <- predict_stack
-  # Plot small amounts
-  # g <- ggplot(predict_stack, aes(x = s_doy, y = prob, colour = type)) +
-  #   geom_line() +
-  #   facet_wrap(~product2) +
-  #   scale_color_manual(values = c("black", c25[1:7])) +
-  #   ggtitle(paste("Chance of rain:", stations[s]))
-  # ggsave(here("results", "zambia", paste0("zambia_", "markov_zero", stations[s], ".png")), 
-  #        plot = g, width = 12, height = 6)
 }
 predict_stack_all <- bind_rows(predict_stack_lst)
 predict_stack_all$station <- factor(predict_stack_all$station, levels = stations)
@@ -581,14 +577,19 @@ for(s in seq_along(products)) {
     facet_wrap(~station) +
     scale_color_manual(values = c("black", viridis(5, end = 0.8)),
                        labels = curve_labs, name = "Curve") +
-    scale_size_manual(values = c(1.3, rep(0.8, 5)), labels = curve_labs, name = "Curve") +
+    scale_size_manual(values = c(1.3, rep(0.8, 5)), 
+                      labels = curve_labs, name = "Curve") +
     scale_x_date(date_breaks = "2 months", date_labels = "%b", name = "Date") +
-    scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), name = "Rain day frequency (rain days/day)") +
-    scale_linetype_manual(values = c("solid", rep("longdash", 5)), labels = curve_labs,
+    scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), 
+                       name = "Rain day frequency (rain days/day)") +
+    scale_linetype_manual(values = c("solid", rep("longdash", 5)), 
+                          labels = curve_labs,
                           name = "Curve") +
     theme(aspect.ratio = 0.5) +
-    ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ", 
-                  "estimated rain day frequency (rain days/day) at various thresholds"))
+    ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
+                   "estimated rain day frequency (rain days/day) at various thresholds"))
+  ##! Figures zm_markov_zero_tamsat, zm_markov_zero_chirps 
+  ##! and zm_markov_zero_era5 (Section 4.3.2.2)
   ggsave(here("results", 
               paste0("zambia_", "markov_zero", "_product_", names(products)[s], ".png")),
          plot = g, width = 12, height = 6)
@@ -596,31 +597,31 @@ for(s in seq_along(products)) {
 ```
 
 ```{r markov_chain_plots_products_all}
-types <- c("Gauge > 0.85mm", "Estimate > 0.85mm",
-           "Estimate > 2mm", "Estimate > 3mm",
-           "Estimate > 4mm", "Estimate > 5mm")
-dat <- predict_stack_all %>% 
-  filter(!grepl("max", type)) %>%
-  mutate(product2 = toupper(substr(product2, 1, nchar(product2) - 5)),
-         product2 = factor(product2, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")))
-g <- ggplot(dat, aes(x = s_doy_date, y = prob, 
-                     colour = type, size = type, linetype = type)) +
-  geom_line() +
-  facet_grid(product2~station) +
-  scale_color_manual(values = c("black", viridis(5, end = 0.8)),
-                     labels = types, name = "Curve") +
-  scale_size_manual(values = c(1.3, rep(0.8, 5)), labels = types, name = "Curve") +
-  scale_x_date(date_breaks = "2 months", date_labels = "%b", name = "Date") +
-  scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), name = "Rain day frequency (rain days/day)") +
-  scale_linetype_manual(values = c("solid", rep("longdash", 5)), labels = types,
-                        name = "Curve") +
-  theme(aspect.ratio = 0.5) +
-  ggtitle(paste0("Gauge and Estimates ",
-                "estimated rain day frequency (rain days/day) at various thresholds"))
-print(g)
-ggsave(here("results",  
-            paste0("zambia_", "markov_zero", "_all_products.png")),
-       plot = g, width = 12, height = 6)
+# NOT USED
+# types <- c("Gauge > 0.85mm", "Estimate > 0.85mm",
+#            "Estimate > 2mm", "Estimate > 3mm",
+#            "Estimate > 4mm", "Estimate > 5mm")
+# dat <- predict_stack_all %>% 
+#   filter(!grepl("max", type)) %>%
+#   mutate(product2 = toupper(substr(product2, 1, nchar(product2) - 5)),
+#          product2 = factor(product2, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")))
+# g <- ggplot(dat, aes(x = s_doy_date, y = prob, 
+#                      colour = type, size = type, linetype = type)) +
+#   geom_line() +
+#   facet_grid(product2~station) +
+#   scale_color_manual(values = c("black", viridis(5, end = 0.8)),
+#                      labels = types, name = "Curve") +
+#   scale_size_manual(values = c(1.3, rep(0.8, 5)), labels = types, name = "Curve") +
+#   scale_x_date(date_breaks = "2 months", date_labels = "%b", name = "Date") +
+#   scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), name = "Rain day frequency (rain days/day)") +
+#   scale_linetype_manual(values = c("solid", rep("longdash", 5)), labels = types,
+#                         name = "Curve") +
+#   theme(aspect.ratio = 0.5) +
+#   ggtitle(paste0("Gauge and Estimates ",
+#                 "estimated rain day frequency (rain days/day) at various thresholds"))
+# ggsave(here("results",  
+#             paste0("zambia_", "markov_zero", "_all_products.png")),
+#        plot = g, width = 12, height = 6)
 ```
 
 ## First Order Markov Chain models
@@ -762,7 +763,10 @@ for (i in seq_along(thres)) {
       scale_linetype_manual(values = c("solid", "longdash")) +
       theme(aspect.ratio = 1) +
       ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
-                     "estimated rain day frequency (rain days/day) at various thresholds"))
+                     "estimated rain day frequency (rain days/day)"))
+    
+    ##! Figures zm_markov_first_chirps_0.85, zm_markov_first_tamsat_0.85
+    ##! and zm_markov_first_tamsat_4 (Section 4.3.2.3)
     ggsave(here("results",
                 paste0("zambia_", "markov_first", "_product_", thres[i], "_", names(products)[s], ".png")),
            plot = g, width = 12, height = 6)
@@ -771,6 +775,7 @@ for (i in seq_along(thres)) {
 ```
 
 ```{r markov_chain_first_dry_spell_plots}
+# NOT USED
 # for(s in seq_along(products)) {
 #   curve_labs <- paste0(c("", rep(toupper(names(products)[s]), 5)), types)
 #   dat <- predict_stack_all %>%
@@ -807,15 +812,16 @@ zm_cats <- zm_long_st %>%
 ```
 
 ```{r rain_cats_overall}
-zm_acc_all <- zm_cats %>%
-  group_by(station, product) %>%
-  summarise(accuracy = mean(rain_cats == pr_rain_cats, na.rm = TRUE))
-
-zm_acc_all %>% 
-  mutate(product = toupper(substr(product, 1, nchar(as.character(product)) - 5))) %>%
-  pivot_wider(id_cols = "station", names_from = "product", values_from = "accuracy") %>%
-  kable(digits = 2) %>%
-  skable()
+# NOT USED
+# zm_acc_all <- zm_cats %>%
+#   group_by(station, product) %>%
+#   summarise(accuracy = mean(rain_cats == pr_rain_cats, na.rm = TRUE))
+# 
+# zm_acc_all %>% 
+#   mutate(product = toupper(substr(product, 1, nchar(as.character(product)) - 5))) %>%
+#   pivot_wider(id_cols = "station", names_from = "product", values_from = "accuracy") %>%
+#   kable(digits = 2) %>%
+#   skable()
 ```
 
 ```{r rain_cats_each}
@@ -834,6 +840,7 @@ ggplot(zm_acc_each, aes(x = rain_cats, y = accuracy, fill = product, group = pro
   labs(fill = "Product") +
   facet_wrap(~station)
 
+##! Figures zm_cats (Section 4.3.2.4)
 ggsave(here("results", 
             paste0("zambia_", "rain_cats.png")),
        width = 12, height = 6)
@@ -873,6 +880,7 @@ ggplot(thresh_month, aes(x = season, y = thres_m, group = station, colour = stat
   scale_y_continuous(breaks = seq(0, 8, 1)) +
   labs(x = "Month", y = "Threshold (mm)", group = "Location", colour = "Location") +
   facet_wrap(~product)
+##! Figure zm_thresh_adjust (Section: 4.3.3)
 ggsave(here("results",  
             paste0("zambia_", "thres_adjust.png")),
        width = 12, height = 6)
@@ -881,6 +889,7 @@ ggsave(here("results",
 
 
 ```{r apply_adjust_threshold}
+## HERE NEXT
 thresh_month %>%
   mutate(thres_m = max(0.85, thres_m))
 
@@ -903,7 +912,8 @@ by_syear_adj <- zm_long_adj %>%
 
 by_syear_st_adj <- by_syear_adj %>%
   pivot_wider(id_cols = c(station, syear), 
-              names_from = product, values_from = total_rain:n_na, names_sep = "__") %>%
+              names_from = product, values_from = total_rain:n_na, 
+              names_sep = "__") %>%
   pivot_longer(cols = -c(station, syear, ends_with("station")), 
                names_to = c(".value", "product"), names_sep = "__")
 
@@ -911,15 +921,18 @@ gof_syear_adj <- by_syear_st_adj %>%
   group_by(station, product) %>%
   nest() %>%
   mutate(n = purrr::map_int(data, 
-                        ~sum(!is.na(.$total_rain__station) & !is.na(.$total_rain))),
-         gof__total_rain = purrr::map(data, dgof, "total_rain", "total_rain__station", 
-                                      na.rm = TRUE),
-         gof__n_rain = purrr::map(data, dgof, "n_rain", "n_rain__station", na.rm = TRUE),
-         gof__mean_rain = purrr::map(data, dgof, "mean_rain", "mean_rain__station", 
+                        ~sum(!is.na(.$total_rain__station) 
+                             & !is.na(.$total_rain))),
+         gof__total_rain = purrr::map(data, dgof, "total_rain", 
+                                      "total_rain__station", na.rm = TRUE),
+         gof__n_rain = purrr::map(data, dgof, "n_rain", "n_rain__station", 
+                                  na.rm = TRUE),
+         gof__mean_rain = purrr::map(data, dgof, "mean_rain", 
+                                     "mean_rain__station", na.rm = TRUE),
+         gof__n_rain_t = purrr::map(data, dgof, "n_rain_t", "n_rain__station",
                                     na.rm = TRUE),
-         gof__n_rain_t = purrr::map(data, dgof, "n_rain_t", "n_rain__station", na.rm = TRUE),
-         gof__mean_rain_t = purrr::map(data, dgof, "mean_rain_t", "mean_rain__station", 
-                                    na.rm = TRUE)
+         gof__mean_rain_t = purrr::map(data, dgof, "mean_rain_t",
+                                       "mean_rain__station", na.rm = TRUE)
          )
 
 gof_pr_adj <- gof_syear_adj %>% 
