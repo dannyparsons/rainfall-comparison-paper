@@ -218,7 +218,8 @@ g <- ggplot(zm_start_era5, aes(x = syear, y = value, colour = Source, size = Sou
   scale_size_manual(values = c(1, 0.5, 0.5)) +
   facet_wrap(~station)
 
-ggsave(here("results", "picsa-paper", "zambia_start_rains_era5_loci.png"),
+##! Figure zm_start (Section: 4.3.4)
+ggsave(here("results", "zambia_start_rains_era5_loci.png"),
        g, width = 12, height = 6)
 
 zm_start_era5 <- zm_start_station
@@ -244,11 +245,12 @@ df <- zm_start_metrics %>%
          rSD = as.character(round(rSD, 2))) %>%
   pivot_longer(cols = c("r", "me", "mae", "rSD"), names_to = "metric") %>%
   mutate(metric = factor(metric, levels = c("r", "me", "mae", "rSD"))) %>%
-  select(station, type, metric, value) %>%
+  dplyr::select(station, type, metric, value) %>%
   mutate(value = format(value, digits = 2)) %>%
   pivot_wider(names_from = "type", values_from = "value") %>%
   arrange(metric, station)
 
+##! Table zm_start_metrics (Section: 4.3.4)
 df %>% 
   kable() %>%
   collapse_rows(columns = 1) %>%
