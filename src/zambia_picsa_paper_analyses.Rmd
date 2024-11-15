@@ -850,7 +850,8 @@ ggsave(here("results",
 
 ```{r calc_adjust_threshold}
 zm_long_st <- zm_long_st %>%
-  mutate(season = ifelse(as.character(month) %in% 5:10, "Dry", as.character(month)),
+  mutate(season = ifelse(as.character(month) %in% 5:10, "Dry", 
+                         as.character(month)),
          season = factor(season, levels = c("Dry", 11:12, 1:4), 
                          labels = c("Dry", month.abb[c(11:12, 1:4)])),
          product = toupper(substr(product, 1, nchar(as.character(product)) - 5)),
@@ -887,218 +888,226 @@ ggsave(here("results",
 
 ```
 
-
 ```{r apply_adjust_threshold}
-## HERE NEXT
-thresh_month %>%
-  mutate(thres_m = max(0.85, thres_m))
-
-zm_long_adj <- zm_long %>% 
-  mutate(season = ifelse(as.character(month) %in% 5:10, "Dry", as.character(month)),
-         season = factor(season, levels = c("Dry", 11:12, 1:4), 
-                         labels = c("Dry", month.abb[c(11:12, 1:4)]))) %>%
-  left_join(thresh_month, by = c("product", "station", "season")) %>%
-  mutate(thres_m = ifelse(product == "station", 0.85, thres_m))
-
-by_syear_adj <- zm_long_adj %>%
-  group_by(station, syear, product) %>%
-  summarise(total_rain = sum(naif_nmin(rain, 355)), 
-            n_rain = sum(naif_nmin(rain > 0.85, 355)),
-            n_rain_t = sum(naif_nmin(rain > thres_m, 355)),
-            mean_rain_t = total_rain/n_rain_t,
-            mean_rain = total_rain/n_rain,
-            n_na = sum(is.na(rain))
-            )
-
-by_syear_st_adj <- by_syear_adj %>%
-  pivot_wider(id_cols = c(station, syear), 
-              names_from = product, values_from = total_rain:n_na, 
-              names_sep = "__") %>%
-  pivot_longer(cols = -c(station, syear, ends_with("station")), 
-               names_to = c(".value", "product"), names_sep = "__")
-
-gof_syear_adj <- by_syear_st_adj %>%
-  group_by(station, product) %>%
-  nest() %>%
-  mutate(n = purrr::map_int(data, 
-                        ~sum(!is.na(.$total_rain__station) 
-                             & !is.na(.$total_rain))),
-         gof__total_rain = purrr::map(data, dgof, "total_rain", 
-                                      "total_rain__station", na.rm = TRUE),
-         gof__n_rain = purrr::map(data, dgof, "n_rain", "n_rain__station", 
-                                  na.rm = TRUE),
-         gof__mean_rain = purrr::map(data, dgof, "mean_rain", 
-                                     "mean_rain__station", na.rm = TRUE),
-         gof__n_rain_t = purrr::map(data, dgof, "n_rain_t", "n_rain__station",
-                                    na.rm = TRUE),
-         gof__mean_rain_t = purrr::map(data, dgof, "mean_rain_t",
-                                       "mean_rain__station", na.rm = TRUE)
-         )
-
-gof_pr_adj <- gof_syear_adj %>% 
-  unnest(cols = data) %>% 
-  group_by(product) %>% 
-  nest()
+# Not used in paper
+# thresh_month <- thresh_month %>%
+#   mutate(thres_m = max(0.85, thres_m))
+# 
+# zm_long_adj <- zm_long %>% 
+#   mutate(season = ifelse(as.character(month) %in% 5:10, "Dry", 
+#                          as.character(month)),
+#          season = factor(season, levels = c("Dry", 11:12, 1:4), 
+#                          labels = c("Dry", month.abb[c(11:12, 1:4)])),
+#          product = as.character(product),
+#          product = ifelse(product != "station", 
+#                           toupper(substr(product, 1, nchar(as.character(product)) - 5)),
+#                           product),
+#          product = factor(product, 
+#                           levels = c("station", "CHIRPS", "ERA5", "TAMSAT",
+#                                      "IMERG", "RFE2"))) %>%
+#   left_join(thresh_month, by = c("product", "station", "season")) %>%
+#   mutate(thres_m = ifelse(product == "station", 0.85, thres_m))
+# 
+# by_syear_adj <- zm_long_adj %>%
+#   group_by(station, syear, product) %>%
+#   summarise(total_rain = sum(naif_nmin(rain, 355)), 
+#             n_rain = sum(naif_nmin(rain > 0.85, 355)),
+#             n_rain_t = sum(naif_nmin(rain > thres_m, 355)),
+#             mean_rain_t = total_rain/n_rain_t,
+#             mean_rain = total_rain/n_rain,
+#             n_na = sum(is.na(rain))
+#             )
+# 
+# by_syear_st_adj <- by_syear_adj %>%
+#   pivot_wider(id_cols = c(station, syear), 
+#               names_from = product, values_from = total_rain:n_na, 
+#               names_sep = "__") %>%
+#   pivot_longer(cols = -c(station, syear, ends_with("station")), 
+#                names_to = c(".value", "product"), names_sep = "__")
+# 
+# gof_syear_adj <- by_syear_st_adj %>%
+#   group_by(station, product) %>%
+#   nest() %>%
+#   mutate(n = purrr::map_int(data, 
+#                         ~sum(!is.na(.$total_rain__station) 
+#                              & !is.na(.$total_rain))),
+#          gof__total_rain = purrr::map(data, dgof, "total_rain", 
+#                                       "total_rain__station", na.rm = TRUE),
+#          gof__n_rain = purrr::map(data, dgof, "n_rain", "n_rain__station", 
+#                                   na.rm = TRUE),
+#          gof__mean_rain = purrr::map(data, dgof, "mean_rain", 
+#                                      "mean_rain__station", na.rm = TRUE),
+#          gof__n_rain_t = purrr::map(data, dgof, "n_rain_t", "n_rain__station",
+#                                     na.rm = TRUE),
+#          gof__mean_rain_t = purrr::map(data, dgof, "mean_rain_t",
+#                                        "mean_rain__station", na.rm = TRUE)
+#          )
+# 
+# gof_pr_adj <- gof_syear_adj %>% 
+#   unnest(cols = data) %>% 
+#   group_by(product) %>% 
+#   nest()
 ```
 
 ```{r liv_yearly_n_rain_plots_adj}
-liv_year_adj <- gof_pr_adj %>% 
-  unnest(data) %>%
-  filter(station == "Livingstone") %>%
-  select(product, station, syear, n_rain__station, n_rain_t, n_rain) %>%  
-  mutate(n_rain__station = ifelse(is.na(n_rain_t), NA, n_rain__station),
-         n_rain_t = ifelse(is.na(n_rain__station), NA, n_rain_t),
-         n_rain = ifelse(is.na(n_rain__station), NA, n_rain)) %>%
-  pivot_longer(cols = c("n_rain__station", "n_rain_t", "n_rain"), 
-               names_to = "Source", values_to = "n_rain") %>%
-  ungroup() %>%
-  mutate(Source = forcats::fct_recode(Source, 
-                                      Gauge = "n_rain__station", Estimate = "n_rain_t",
-                                      `Estimate unadjusted` = "n_rain"),
-         Source = factor(Source, levels = c("Gauge", "Estimate", "Estimate unadjusted")),
-         product = toupper(substr(product, 1, nchar(product) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")))
-
-mean_df <- liv_year_adj %>%
-  group_by(product, Source) %>%
-  summarise(m = mean(n_rain, na.rm = TRUE))
-
-g <- ggplot(liv_year_adj, aes(x = syear, y = n_rain, colour = Source)) +
-  geom_line() +
-  geom_point() +
-  geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
-  scale_x_continuous(breaks = seq(1980, 2020, 5)) +
-  scale_y_continuous(limits = c(0, NA), breaks = seq(0, 150, 25)) +
-  labs(x = "Year", y = "Rain day frequency (rain day/year)") +
-  ggtitle("Gauge vs estimate August to July rain day frequency at Livingstone") +
-  facet_wrap(~product)
-g
-ggsave(here("results", paste0("zambia_", "livingstone_",
-                              "n_rain_adj", ".png")),
-       width = 12, height = 6)
+# Not used in paper
+# liv_year_adj <- gof_pr_adj %>% 
+#   unnest(data) %>%
+#   filter(station == "Livingstone") %>%
+#   select(product, station, syear, n_rain__station, n_rain_t, n_rain) %>%  
+#   mutate(n_rain__station = ifelse(is.na(n_rain_t), NA, n_rain__station),
+#          n_rain_t = ifelse(is.na(n_rain__station), NA, n_rain_t),
+#          n_rain = ifelse(is.na(n_rain__station), NA, n_rain)) %>%
+#   pivot_longer(cols = c("n_rain__station", "n_rain_t", "n_rain"), 
+#                names_to = "Source", values_to = "n_rain") %>%
+#   ungroup() %>%
+#   mutate(Source = forcats::fct_recode(Source, 
+#                                       Gauge = "n_rain__station", Estimate = "n_rain_t",
+#                                       `Estimate unadjusted` = "n_rain"),
+#          Source = factor(Source, levels = c("Gauge", "Estimate", "Estimate unadjusted")))
+# 
+# mean_df <- liv_year_adj %>%
+#   group_by(product, Source) %>%
+#   summarise(m = mean(n_rain, na.rm = TRUE))
+# 
+# g <- ggplot(liv_year_adj, aes(x = syear, y = n_rain, colour = Source)) +
+#   geom_line() +
+#   geom_point() +
+#   geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
+#   scale_x_continuous(breaks = seq(1980, 2020, 5)) +
+#   scale_y_continuous(limits = c(0, NA), breaks = seq(0, 150, 25)) +
+#   labs(x = "Year", y = "Rain day frequency (rain day/year)") +
+#   ggtitle("Gauge vs estimate August to July rain day frequency at Livingstone") +
+#   facet_wrap(~product)
+# 
+# ggsave(here("results", paste0("zambia_", "livingstone_",
+#                               "n_rain_adj", ".png")),
+#        width = 12, height = 6)
 ```
 
 ```{r adj_thresh_cor}
-cor_by_year <- by_syear_st_adj %>%
-  group_by(product, station) %>%
-  summarise(cor_pr = cor(x = n_rain__station, y = n_rain, use = "na.or.complete"), 
-            cor_pr_t = cor(x = n_rain__station, y = n_rain_t, use = "na.or.complete"),
-            cor_pr_pr_t = cor(x = n_rain, y = n_rain_t, use = "na.or.complete")) %>%
-  ungroup() %>%
-  mutate(product = toupper(substr(product, 1, nchar(product) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")))
-
-cor_by_year_stack <- cor_by_year %>% 
-  pivot_longer(cols = c("cor_pr", "cor_pr_t"))
-
-ggplot(cor_by_year_stack, aes(x = station, y = value, fill = name)) +
-  geom_col(position = "dodge") +
-  labs(x = "Location", y = "Correlation", fill = "Estimate") +
-  scale_fill_manual(values = c25[1:2], labels = c("Unadjusted", "Adjusted threshold")) +
-  facet_wrap(~product)
-
-ggsave(here("results", paste0("zambia_", "n_rain_adj_cor", ".png")),
-       width = 12, height = 6)
+# Not used in paper
+# cor_by_year <- by_syear_st_adj %>%
+#   group_by(product, station) %>%
+#   summarise(cor_pr = cor(x = n_rain__station, y = n_rain, use = "na.or.complete"),
+#             cor_pr_t = cor(x = n_rain__station, y = n_rain_t, use = "na.or.complete"),
+#             cor_pr_pr_t = cor(x = n_rain, y = n_rain_t, use = "na.or.complete")) %>%
+#   ungroup()
+# 
+# cor_by_year_stack <- cor_by_year %>%
+#   pivot_longer(cols = c("cor_pr", "cor_pr_t"))
+# 
+# g <- ggplot(cor_by_year_stack, aes(x = station, y = value, fill = name)) +
+#   geom_col(position = "dodge") +
+#   labs(x = "Location", y = "Correlation", fill = "Estimate") +
+#   scale_fill_manual(values = c25[1:2], labels = c("Unadjusted", "Adjusted threshold")) +
+#   facet_wrap(~product)
+# 
+# ggsave(here("results", paste0("zambia_", "n_rain_adj_cor", ".png")),
+#        width = 12, height = 6)
 
 ```
 
 ```{r liv_yearly_n_rain_tables_adj, results="asis"}
-# stats_tables(gof_syear, "gof__n_rain")
-df <- gof_syear_adj %>%
-  filter(station == "Livingstone") %>%
-  ungroup() %>%
-  mutate(r = purrr::map_dbl(gof__n_rain_t, "r"),
-         pbias = purrr::map_dbl(gof__n_rain_t, "PBIAS %"),
-         MAE = purrr::map_dbl(gof__n_rain_t, "MAE")) %>%
-  pivot_longer(cols = c("r", "pbias", "MAE"), names_to = "metric") %>%
-  mutate(metric = factor(metric, levels = c("r", "pbias", "MAE"))) %>%
-  select(station, product, metric, value) %>%
-  mutate(value = ifelse(metric == "r", format(value, digits = 2), 
-                        format(value, digits = 0))) %>%
-  pivot_wider(names_from = "product", values_from = "value") %>%
-  arrange(metric, station)
-names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1, 
-                                        nchar(names(df)[3:ncol(df)]) - 5))
-df %>% 
-  select(metric, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
-  kable() %>%
-  column_spec(column = 4, border_right = TRUE) %>%
-  collapse_rows(columns = 1) %>%
-  skable()
-
+# Not used in paper
+# df <- gof_syear_adj %>%
+#   filter(station == "Livingstone") %>%
+#   ungroup() %>%
+#   mutate(r = purrr::map_dbl(gof__n_rain_t, "r"),
+#          pbias = purrr::map_dbl(gof__n_rain_t, "PBIAS %"),
+#          MAE = purrr::map_dbl(gof__n_rain_t, "MAE")) %>%
+#   pivot_longer(cols = c("r", "pbias", "MAE"), names_to = "metric") %>%
+#   mutate(metric = factor(metric, levels = c("r", "pbias", "MAE"))) %>%
+#   select(station, product, metric, value) %>%
+#   mutate(value = ifelse(metric == "r", format(value, digits = 2), 
+#                         round(value))) %>%
+#   pivot_wider(names_from = "product", values_from = "value") %>%
+#   arrange(metric, station)
+# # names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1, 
+# #                                         nchar(names(df)[3:ncol(df)]) - 5))
+# df %>% 
+#   select(metric, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
+#   kable() %>%
+#   column_spec(column = 4, border_right = TRUE) %>%
+#   collapse_rows(columns = 1) %>%
+#   skable()
 ```
 
 ## Start of the rains
 
 ```{r start_rains_graphs}
-zm_year_rain <- zm_long_st %>%
-  group_by(product, station) %>%
-  mutate(roll_sum_rain = RcppRoll::roll_sumr(x = rain, n = 3, fill = NA, na.rm = FALSE)) %>%
-  filter((rain >= 0.85 & roll_sum_rain > 20) | is.na(rain) | is.na(roll_sum_rain)) %>%
-  group_by(product, station, syear) %>%
-  filter(s_doy >= 107 & s_doy <= 213) %>%
-  summarise(start_rain_doy = ifelse(is.na(dplyr::first(rain)) | is.na(dplyr::first(roll_sum_rain)),
-                                    NA, dplyr::first(s_doy))
-            )
-
-zm_year_pr_rain <- zm_long_st %>%
-  group_by(product, station) %>%
-  mutate(roll_sum_pr_rain = RcppRoll::roll_sumr(x = pr_rain, n = 3, fill = NA, na.rm = FALSE)) %>%
-  filter((pr_rain >= 0.85 & roll_sum_pr_rain > 20) | is.na(pr_rain) | is.na(roll_sum_pr_rain)) %>%
-  group_by(product, station, syear) %>%
-  filter(s_doy >= 107 & s_doy <= 213) %>%
-  summarise(start_pr_rain_doy = ifelse(is.na(dplyr::first(pr_rain)) | is.na(dplyr::first(roll_sum_pr_rain)),
-                                       NA, dplyr::first(s_doy))
-            )
-
-zm_year_rain <- full_join(zm_year_rain, zm_year_pr_rain, 
-                          by = c("product", "station", "syear"))
-
-for (p in seq_along(products)) {
-  df <- zm_year_rain %>% dplyr::filter(product == products[[p]])
-  g <- ggplot(df, aes(x = syear, y = start_rain_doy)) +
-    geom_line(aes(colour = "station")) +
-    geom_line(aes(y = start_pr_rain_doy, colour = "product")) +
-    ggtitle(paste0(products[[p]], ": Start of rains")) +
-    facet_wrap(~station)
-  print(g)
-}
+# Not used in paper
+# zm_year_rain <- zm_long_st %>%
+#   group_by(product, station) %>%
+#   mutate(roll_sum_rain = RcppRoll::roll_sumr(x = rain, n = 3, fill = NA, na.rm = FALSE)) %>%
+#   filter((rain >= 0.85 & roll_sum_rain > 20) | is.na(rain) | is.na(roll_sum_rain)) %>%
+#   group_by(product, station, syear) %>%
+#   filter(s_doy >= 107 & s_doy <= 213) %>%
+#   summarise(start_rain_doy = ifelse(is.na(dplyr::first(rain)) | is.na(dplyr::first(roll_sum_rain)),
+#                                     NA, dplyr::first(s_doy))
+#             )
+# 
+# zm_year_pr_rain <- zm_long_st %>%
+#   group_by(product, station) %>%
+#   mutate(roll_sum_pr_rain = RcppRoll::roll_sumr(x = pr_rain, n = 3, fill = NA, na.rm = FALSE)) %>%
+#   filter((pr_rain >= 0.85 & roll_sum_pr_rain > 20) | is.na(pr_rain) | is.na(roll_sum_pr_rain)) %>%
+#   group_by(product, station, syear) %>%
+#   filter(s_doy >= 107 & s_doy <= 213) %>%
+#   summarise(start_pr_rain_doy = ifelse(is.na(dplyr::first(pr_rain)) | is.na(dplyr::first(roll_sum_pr_rain)),
+#                                        NA, dplyr::first(s_doy))
+#             )
+# 
+# zm_year_rain <- full_join(zm_year_rain, zm_year_pr_rain, 
+#                           by = c("product", "station", "syear"))
+# 
+# product_names <- c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")
+# for (p in seq_along(product_names)) {
+#   df <- zm_year_rain %>% dplyr::filter(product == product_names[[p]])
+#   g <- ggplot(df, aes(x = syear, y = start_rain_doy)) +
+#     geom_line(aes(colour = "station")) +
+#     geom_line(aes(y = start_pr_rain_doy, colour = "product")) +
+#     ggtitle(paste0(products[[p]], ": Start of rains")) +
+#     facet_wrap(~station)
+#   print(g)
+# }
 ```
 
 ```{r start_rains_metrics}
-zm_year_metrics <- zm_year_rain %>%
-  group_by(product, station) %>%
-  summarise(r = cor(start_pr_rain_doy, start_rain_doy, use = "na.or.complete"),
-            me = hydroGOF::me(start_pr_rain_doy, start_rain_doy),
-            mae = hydroGOF::mae(start_pr_rain_doy, start_rain_doy),
-            rSD = hydroGOF::rSD(start_pr_rain_doy, start_rain_doy)#,
-            #prop_after = sum(start_pr_rain_doy > start_rain_doy, na.rm = TRUE)/n()
-            )
-
-df <- zm_year_metrics %>%
-  mutate(r = as.character(round(r, 2)),
-         me = as.character(round(me, 1)),
-         mae = as.character(round(mae, 1)),
-         rSD = as.character(round(rSD, 2))) %>%
-  pivot_longer(cols = c("r", "me", "mae", "rSD"), names_to = "metric") %>%
-  mutate(metric = factor(metric, levels = c("r", "me", "mae", "rSD"))) %>%
-  select(station, product, metric, value) %>%
-  mutate(value = ifelse(metric == "pbias", format(value, digits = 0), 
-                        format(value, digits = 2))) %>%
-  pivot_wider(names_from = "product", values_from = "value") %>%
-  arrange(metric, station)
-names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1, 
-                                        nchar(names(df)[3:ncol(df)]) - 5))
-df %>% 
-  select(metric, station, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
-  kable() %>%
-  column_spec(column = 5, border_right = TRUE) %>%
-  collapse_rows(columns = 1) %>%
-  skable()
+# Not used in paper
+# zm_year_metrics <- zm_year_rain %>%
+#   group_by(product, station) %>%
+#   summarise(r = cor(start_pr_rain_doy, start_rain_doy, use = "na.or.complete"),
+#             me = hydroGOF::me(start_pr_rain_doy, start_rain_doy),
+#             mae = hydroGOF::mae(start_pr_rain_doy, start_rain_doy),
+#             rSD = hydroGOF::rSD(start_pr_rain_doy, start_rain_doy)#,
+#             #prop_after = sum(start_pr_rain_doy > start_rain_doy, na.rm = TRUE)/n()
+#             )
+# 
+# df <- zm_year_metrics %>%
+#   mutate(r = as.character(round(r, 2)),
+#          me = as.character(round(me, 1)),
+#          mae = as.character(round(mae, 1)),
+#          rSD = as.character(round(rSD, 2))) %>%
+#   pivot_longer(cols = c("r", "me", "mae", "rSD"), names_to = "metric") %>%
+#   mutate(metric = factor(metric, levels = c("r", "me", "mae", "rSD"))) %>%
+#   select(station, product, metric, value) %>%
+#   mutate(value = ifelse(metric == "pbias", format(value, digits = 0), 
+#                         format(value, digits = 2))) %>%
+#   pivot_wider(names_from = "product", values_from = "value") %>%
+#   arrange(metric, station)
+# # names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1, 
+# #                                         nchar(names(df)[3:ncol(df)]) - 5))
+# df %>% 
+#   select(metric, station, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
+#   kable() %>%
+#   column_spec(column = 5, border_right = TRUE) %>%
+#   collapse_rows(columns = 1) %>%
+#   skable()
 ```
 
 ```{r start_rains_dry_graphs}
 
+# Not used in paper
 # zm_year_rain_dry <- zm_long_st %>%
 #   group_by(product, station) %>%
 #   mutate(roll_sum_rain = RcppRoll::roll_sumr(x = rain, n = 3, fill = NA, na.rm = FALSE),
@@ -1142,6 +1151,7 @@ df %>%
 ```
 
 ```{r start_rainsdry_metrics}
+# Not used in paper
 # zm_year_metrics_dry <- zm_year_raindry %>%
 #   group_by(product, station) %>%
 #   summarise(r = cor(start_pr_rain_doy_dry, start_rain_doy_dry, use = "na.or.complete"),
@@ -1170,6 +1180,7 @@ df %>%
 ```
 
 ```{r start_rains_compare}
+# Not used in paper
 # df1 <- zm_year_rain %>% dplyr::filter(product == products[[1]])
 # df2 <- zm_year_raindry %>% dplyr::filter(product == products[[1]])
 # g <- ggplot(df1, aes(x = syear, y = start_rain_doy)) +
@@ -1181,10 +1192,10 @@ df %>%
 ```
 
 ```{r start_metrics_compare}
+# Not used in paper
 # zm_metrics_bind <- dplyr::bind_rows(standard = zm_year_metrics, dry = zm_year_metrics_dry, .id = "type")
 # zm_metrics_bind$type <- factor(zm_metrics_bind$type, levels = c("standard", "dry"))
 # ggplot(zm_metrics_bind, aes(x = station, y = mae, fill = type)) +
 #   geom_col(position = "dodge") +
 #   facet_wrap(~product)
 ```
-
