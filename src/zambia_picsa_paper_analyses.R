@@ -1,15 +1,3 @@
----
-title: "PICSA Paper Analyses"
-author: "Danny Parsons"
-date: "01/08/2020"
-output: 
-  html_document:
-    fig_width: 12
-    fig_height: 6
----
-
-```{r packages, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(here)
 library(ggplot2)
 library(lubridate)
@@ -28,9 +16,7 @@ library(sp)
 library(tibble)
 library(purrr)
 library(dplyr)
-```
 
-```{r setup, include=FALSE}
 source(here("src", "helper_funs.R"))
 
 zm <- readRDS(here("data", "station", "cleaned", "zambia_gridded.RDS")) %>%
@@ -106,31 +92,25 @@ skable <- function(kable_input) {
   kable_input %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                                 full_width = FALSE)
 }
-```
 
-## Stations
 
-- Kasama, Mansa, Mpika in the North. 
-- Mansa results are different to the results in the south, which could be the location or the quality of the station
-- Station data filtered to start in 1983 to align with majority of products
-
-```{r}
+## -----------------------------------------------------------------------------------
 metadata_zm %>% 
   mutate(period = paste(year(first_date), "-", year(last_date))) %>%
   select(station, latitude, longitude, period) %>%
   kable(digits = 2) %>%
   skable()
-```
 
-```{r prop_complete_days}
+
+## ----prop_complete_days-------------------------------------------------------------
 zm %>% 
   group_by(station) %>% 
   summarise(prop_n = 100* (1 - naflex::na_prop(rain))) %>%
   kable(digits = 1) %>%
   skable()
-```
 
-```{r gof_fun}
+
+## ----gof_fun------------------------------------------------------------------------
 dgof <- function(df, sim, obs, na.rm = TRUE) {
   g <- hydroGOF::gof(sim = df[[sim]], obs = df[[obs]], na.rm = na.rm)
   as.list(g[ ,1])
@@ -145,11 +125,9 @@ names(comp_stats) <- c("Mean bias (same units)",
                        "Kling-Gupta efficiency")
 
 comp_stats_digits <- c(0, 2, 0, 0, 2, 2, 2)
-```
 
-## Yearly Comparisons (August to July)
 
-```{r yearly_calcs}
+## ----yearly_calcs-------------------------------------------------------------------
 by_syear <- zm_long %>%
   group_by(station, syear, product) %>%
   summarise(total_rain = sum(naif_nmin(rain, 355)), 
@@ -181,9 +159,9 @@ gof_pr <- gof_syear %>%
   unnest(cols = data) %>% 
   group_by(product) %>% 
   nest()
-```
 
-```{r yearly_plots_fun}
+
+## ----yearly_plots_fun---------------------------------------------------------------
 yearly_plots <- function(df, gof_col, stat_pr, stat_st, product_name, title, ytitle) {
   max_y <- max(c(df[[stat_pr]], df[[stat_st]]), na.rm = TRUE)
   product_name <- toupper(substr(product_name, 1, nchar(product_name) - 5))
@@ -231,9 +209,9 @@ yearly_plots <- function(df, gof_col, stat_pr, stat_st, product_name, title, yti
     facet_wrap(~station)
   g
 }
-```
 
-```{r stats_tables_fun}
+
+## ----stats_tables_fun---------------------------------------------------------------
 stats_tables <- function(df, obj_col, obj_stats = comp_stats) {
   for(i in seq_along(obj_stats)) {
     dat <- df %>% 
@@ -255,19 +233,9 @@ stats_tables <- function(df, obj_col, obj_stats = comp_stats) {
       print()
   }
 }
-```
 
-### Comparison Statistics for Total Yearly Rainfall
 
-- In general all products follow a similar shape each year (high correlation)
-- All products, apart from ERA5, estimate the mean quite well (low bias and low percentage bias).
-- ERA5 overestimates (high bias) but could be expected as it represents the largest area.
-- RFE2 and IMERG look promising across all measures, but few years compared, need the extended station records for better comparison
-- Aside from RFE2 and IMERG, CHIRPS performs well over all measures
-- Slightly less variability in all products, between 70% - 90% (apart from RFE2 which has roughly the same variability)
-- Results for Mansa are generally different across products, indicating possible issues with the station records
-
-```{r yearly_total_plots}
+## ----yearly_total_plots-------------------------------------------------------------
 p_syear_total <- gof_pr %>%
   mutate(p = purrr::map(data, yearly_plots, gof_col = "gof__total_rain", 
                         stat_pr = "total_rain", stat_st = "total_rain__station", 
@@ -278,9 +246,9 @@ p_syear_total <- gof_pr %>%
 
 ##! Figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
 walk2(p_syear_total$paths, p_syear_total$p, ggsave, width = 12, height = 6)
-```
 
-```{r yearly_total_tamsat_era5}
+
+## ----yearly_total_tamsat_era5-------------------------------------------------------
 yearly_tamsat <- gof_pr$data[[3]] %>%
   dplyr::select(station, syear, Gauge = total_rain__station, 
                 TAMSAT = total_rain)
@@ -313,9 +281,9 @@ mean_df <- dat %>%
 ##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
   ggsave(here("results", "zambia_syear_total_rain_tamsat_era5.png"),
          g, width = 12, height = 6)
-```
 
-```{r yearly_n_obs, results="asis"}
+
+## ----yearly_n_obs, results="asis"---------------------------------------------------
 dat <- gof_syear %>% 
   select(station, product, n) %>%
   pivot_wider(id_cols = c(station), names_from = product, values_from = n)
@@ -328,9 +296,9 @@ names(dat)[endsWith(names(dat), "rain")] <-
 dat %>%
   kable(caption = "Number of years compared") %>%
   skable()
-```
 
-```{r yearly_total_rain_tables, results="asis"}
+
+## ----yearly_total_rain_tables, results="asis"---------------------------------------
 #stats_tables(gof_syear, "gof__total_rain")
 df <- gof_syear %>%
   ungroup() %>%
@@ -354,17 +322,9 @@ df %>%
   column_spec(column = 5, border_right = TRUE) %>%
   collapse_rows(columns = 1) %>%
   skable()
-```
 
-### Comparison Statistics for Number of rainy days
 
-- Reasonably good correlation across the products, so similar pattern each year
-- All products overestimate number of rainy days with the same threshold
-- Wide variation of the bias amount across products, ERA5 has largest bias, CHIPS has lowest
-- Almost the same variability for all products
-- Results for Mansa are generally different across products, indicating possible issues with the station records
-
-```{r liv_yearly_n_rain_plots}
+## ----liv_yearly_n_rain_plots--------------------------------------------------------
 liv_year <- gof_pr %>% 
   unnest(data) %>%
   filter(station == "Livingstone") %>%
@@ -397,9 +357,9 @@ g
 ##! Figure zm_liv_n (Section 4.3.2.1)
 ggsave(here("results", paste0("zambia_", "livingstone_", "n_rain", ".png")),
        width = 12, height = 6)
-```
 
-```{r liv_yearly_n_rain_tables, results="asis"}
+
+## ----liv_yearly_n_rain_tables, results="asis"---------------------------------------
 # stats_tables(gof_syear, "gof__n_rain")
 df <- gof_syear %>%
   filter(station == "Livingstone") %>%
@@ -423,9 +383,9 @@ df %>%
   column_spec(column = 4, border_right = TRUE) %>%
   collapse_rows(columns = 1) %>%
   skable()
-```
 
-```{r liv_yearly_mean_rain_plots}
+
+## ----liv_yearly_mean_rain_plots-----------------------------------------------------
 liv_year <- gof_pr %>% 
   unnest(data) %>%
   filter(station == "Livingstone") %>%
@@ -458,11 +418,9 @@ g
 ##! Figure zm_liv_mean (Section 4.3.2.1)
 ggsave(here("results", paste0("zambia_", "livingstone_", "mean_rain", ".png")),
        width = 12, height = 6)
-```
 
-## Zero order Markov Chain models
 
-```{r markov_chain_setup_zero}
+## ----markov_chain_setup_zero--------------------------------------------------------
 zambia_markov <- zm_long_st %>% 
   filter(!is.na(rain) & !is.na(pr_rain)) %>%
   mutate(rainday1 = rain > 0.85,
@@ -561,9 +519,9 @@ for(s in seq_along(stations)) {
 }
 predict_stack_all <- bind_rows(predict_stack_lst)
 predict_stack_all$station <- factor(predict_stack_all$station, levels = stations)
-```
 
-```{r markov_chain_plots_products}
+
+## ----markov_chain_plots_products----------------------------------------------------
 types <- c("Gauge > 0.85mm", " > 0.85mm",
            " > 2mm", " > 3mm",
            " > 4mm", " > 5mm")
@@ -594,9 +552,9 @@ for(s in seq_along(products)) {
               paste0("zambia_", "markov_zero", "_product_", names(products)[s], ".png")),
          plot = g, width = 12, height = 6)
 }
-```
 
-```{r markov_chain_plots_products_all}
+
+## ----markov_chain_plots_products_all------------------------------------------------
 # NOT USED
 # types <- c("Gauge > 0.85mm", "Estimate > 0.85mm",
 #            "Estimate > 2mm", "Estimate > 3mm",
@@ -622,11 +580,9 @@ for(s in seq_along(products)) {
 # ggsave(here("results",  
 #             paste0("zambia_", "markov_zero", "_all_products.png")),
 #        plot = g, width = 12, height = 6)
-```
 
-## First Order Markov Chain models
 
-```{r markov_chain_setup_first}
+## ----markov_chain_setup_first-------------------------------------------------------
 zambia_markov <- zm_long_st %>% 
   filter(!is.na(rain) & !is.na(pr_rain)) %>%
   mutate(rainday1 = rain > 0.85,
@@ -740,9 +696,9 @@ for(s in seq_along(stations)) {
 }
 predict_stack_all <- bind_rows(predict_stack_lst)
 predict_stack_all$station <- factor(predict_stack_all$station, levels = stations)
-```
 
-```{r markov_chain_first_plots_products}
+
+## ----markov_chain_first_plots_products----------------------------------------------
 thres <- c(0.85, 2, 3, 4, 5)
 names_thres <- c("product1", paste0(2:5, "thres"))
 for (i in seq_along(thres)) {
@@ -772,9 +728,9 @@ for (i in seq_along(thres)) {
            plot = g, width = 12, height = 6)
   }
 }
-```
 
-```{r markov_chain_first_dry_spell_plots}
+
+## ----markov_chain_first_dry_spell_plots---------------------------------------------
 # NOT USED
 # for(s in seq_along(products)) {
 #   curve_labs <- paste0(c("", rep(toupper(names(products)[s]), 5)), types)
@@ -797,10 +753,9 @@ for (i in seq_along(thres)) {
 #               paste0("zambia_", "markov_first_wet_spell", "_product_", names(products)[s], ".png")),
 #          plot = g, width = 12, height = 6)
 # }
-```
 
-## Rain intensity categories
-```{r rain_cats}
+
+## ----rain_cats----------------------------------------------------------------------
 cat_labs <- c("Dry", "Light Rain", 
               "Moderate Rain", "Heavy Rain", 
               "Violent Rain")
@@ -809,9 +764,9 @@ zm_cats <- zm_long_st %>%
                          right = FALSE, labels = cat_labs),
          pr_rain_cats = cut(pr_rain, c(0, 0.85, 5, 20, 40, Inf), include.lowest = TRUE,
                          right = FALSE, labels = cat_labs))
-```
 
-```{r rain_cats_overall}
+
+## ----rain_cats_overall--------------------------------------------------------------
 # NOT USED
 # zm_acc_all <- zm_cats %>%
 #   group_by(station, product) %>%
@@ -822,9 +777,9 @@ zm_cats <- zm_long_st %>%
 #   pivot_wider(id_cols = "station", names_from = "product", values_from = "accuracy") %>%
 #   kable(digits = 2) %>%
 #   skable()
-```
 
-```{r rain_cats_each}
+
+## ----rain_cats_each-----------------------------------------------------------------
 zm_acc_each <- zm_cats %>%
   group_by(station, product, rain_cats) %>%
   filter(!is.na(rain_cats)) %>%
@@ -844,11 +799,9 @@ ggplot(zm_acc_each, aes(x = rain_cats, y = accuracy, fill = product, group = pro
 ggsave(here("results", 
             paste0("zambia_", "rain_cats.png")),
        width = 12, height = 6)
-```
 
-## Adjust thresholds
 
-```{r calc_adjust_threshold}
+## ----calc_adjust_threshold----------------------------------------------------------
 zm_long_st <- zm_long_st %>%
   mutate(season = ifelse(as.character(month) %in% 5:10, "Dry", 
                          as.character(month)),
@@ -886,9 +839,9 @@ ggsave(here("results",
             paste0("zambia_", "thres_adjust.png")),
        width = 12, height = 6)
 
-```
 
-```{r apply_adjust_threshold}
+
+## ----apply_adjust_threshold---------------------------------------------------------
 # Not used in paper
 # thresh_month <- thresh_month %>%
 #   mutate(thres_m = max(0.85, thres_m))
@@ -947,9 +900,9 @@ ggsave(here("results",
 #   unnest(cols = data) %>% 
 #   group_by(product) %>% 
 #   nest()
-```
 
-```{r liv_yearly_n_rain_plots_adj}
+
+## ----liv_yearly_n_rain_plots_adj----------------------------------------------------
 # Not used in paper
 # liv_year_adj <- gof_pr_adj %>% 
 #   unnest(data) %>%
@@ -983,9 +936,9 @@ ggsave(here("results",
 # ggsave(here("results", paste0("zambia_", "livingstone_",
 #                               "n_rain_adj", ".png")),
 #        width = 12, height = 6)
-```
 
-```{r adj_thresh_cor}
+
+## ----adj_thresh_cor-----------------------------------------------------------------
 # Not used in paper
 # cor_by_year <- by_syear_st_adj %>%
 #   group_by(product, station) %>%
@@ -1006,9 +959,9 @@ ggsave(here("results",
 # ggsave(here("results", paste0("zambia_", "n_rain_adj_cor", ".png")),
 #        width = 12, height = 6)
 
-```
 
-```{r liv_yearly_n_rain_tables_adj, results="asis"}
+
+## ----liv_yearly_n_rain_tables_adj, results="asis"-----------------------------------
 # Not used in paper
 # df <- gof_syear_adj %>%
 #   filter(station == "Livingstone") %>%
@@ -1031,11 +984,9 @@ ggsave(here("results",
 #   column_spec(column = 4, border_right = TRUE) %>%
 #   collapse_rows(columns = 1) %>%
 #   skable()
-```
 
-## Start of the rains
 
-```{r start_rains_graphs}
+## ----start_rains_graphs-------------------------------------------------------------
 # Not used in paper
 # zm_year_rain <- zm_long_st %>%
 #   group_by(product, station) %>%
@@ -1070,9 +1021,9 @@ ggsave(here("results",
 #     facet_wrap(~station)
 #   print(g)
 # }
-```
 
-```{r start_rains_metrics}
+
+## ----start_rains_metrics------------------------------------------------------------
 # Not used in paper
 # zm_year_metrics <- zm_year_rain %>%
 #   group_by(product, station) %>%
@@ -1103,9 +1054,9 @@ ggsave(here("results",
 #   column_spec(column = 5, border_right = TRUE) %>%
 #   collapse_rows(columns = 1) %>%
 #   skable()
-```
 
-```{r start_rains_dry_graphs}
+
+## ----start_rains_dry_graphs---------------------------------------------------------
 
 # Not used in paper
 # zm_year_rain_dry <- zm_long_st %>%
@@ -1148,9 +1099,9 @@ ggsave(here("results",
 #     facet_wrap(~station)
 #   print(g)
 # }
-```
 
-```{r start_rainsdry_metrics}
+
+## ----start_rainsdry_metrics---------------------------------------------------------
 # Not used in paper
 # zm_year_metrics_dry <- zm_year_raindry %>%
 #   group_by(product, station) %>%
@@ -1177,9 +1128,9 @@ ggsave(here("results",
 #   column_spec(column = 5, border_right = TRUE) %>%
 #   collapse_rows(columns = 1) %>%
 #   skable()
-```
 
-```{r start_rains_compare}
+
+## ----start_rains_compare------------------------------------------------------------
 # Not used in paper
 # df1 <- zm_year_rain %>% dplyr::filter(product == products[[1]])
 # df2 <- zm_year_raindry %>% dplyr::filter(product == products[[1]])
@@ -1189,13 +1140,13 @@ ggsave(here("results",
 #   ggtitle(paste0(products[[p]], ": Start of rains")) +
 #   facet_wrap(~station)
 # print(g)
-```
 
-```{r start_metrics_compare}
+
+## ----start_metrics_compare----------------------------------------------------------
 # Not used in paper
 # zm_metrics_bind <- dplyr::bind_rows(standard = zm_year_metrics, dry = zm_year_metrics_dry, .id = "type")
 # zm_metrics_bind$type <- factor(zm_metrics_bind$type, levels = c("standard", "dry"))
 # ggplot(zm_metrics_bind, aes(x = station, y = mae, fill = type)) +
 #   geom_col(position = "dodge") +
 #   facet_wrap(~product)
-```
+
