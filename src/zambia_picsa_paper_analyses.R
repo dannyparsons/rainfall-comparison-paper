@@ -33,7 +33,7 @@ zm <- zm %>%
          month_abb = factor(month, labels = month.abb[c(8:12, 1:7)]),
          rain = ifelse(rain < 0, 0, rain),
          era5_rain = ifelse(era5_rain < 0, 0, era5_rain)
-         ) %>%
+  ) %>%
   filter(year >= 1983)
 
 # Not using ENACTS for most analyses so remove.
@@ -46,8 +46,8 @@ zm_long_st <- zm %>%
        variable.name = "product", value.name = "pr_rain")
 
 zm_long_st$product <- factor(zm_long_st$product, 
-                          levels = c("chirps_rain", "era5_rain", "tamsat_rain",
-                                     "imerg_rain", "rfe2_rain"))
+                             levels = c("chirps_rain", "era5_rain", "tamsat_rain",
+                                        "imerg_rain", "rfe2_rain"))
 zm_long <- zm %>% 
   melt(id.vars = c("station", "date", "year", "syear", "month", "month_abb", "doy", "s_doy"),
        measure.vars = names(zm)[endsWith(names(zm), "rain")],
@@ -63,10 +63,7 @@ products <- levels(zm_long$product)
 products <- products[-1]
 names(products) <- substr(products, 1, nchar(products) - 5)
 
-metadata_station <- readRDS(here("data", "station", "processed", "stations_metadata.RDS"))
-metadata_zm <- metadata_station %>%
-  filter(country == "Zambia")
-rm(metadata_station)
+metadata_zm <- readRDS(here("data", "station", "processed", "zambia_stations_metadata.RDS"))
 
 metadata_zm$station <- factor(metadata_zm$station, levels = stations)
 zm_long$station <- factor(zm_long$station, levels = stations)
@@ -135,7 +132,7 @@ by_syear <- zm_long %>%
             max_rain = max(naif_nmin(rain, 350)), 
             mean_rain = total_rain/n_rain, 
             n_na = sum(is.na(rain))
-            )
+  )
 
 by_syear_st <- by_syear %>%
   pivot_wider(id_cols = c(station, syear), 
@@ -147,13 +144,13 @@ gof_syear <- by_syear_st %>%
   group_by(station, product) %>%
   nest() %>%
   mutate(n = purrr::map_int(data, 
-                        ~sum(!is.na(.$total_rain__station) & !is.na(.$total_rain))),
+                            ~sum(!is.na(.$total_rain__station) & !is.na(.$total_rain))),
          gof__total_rain = purrr::map(data, dgof, "total_rain", "total_rain__station", 
                                       na.rm = TRUE),
          gof__n_rain = purrr::map(data, dgof, "n_rain", "n_rain__station", na.rm = TRUE),
          gof__mean_rain = purrr::map(data, dgof, "mean_rain", "mean_rain__station", 
                                      na.rm = TRUE)
-         )
+  )
 
 gof_pr <- gof_syear %>% 
   unnest(cols = data) %>% 
@@ -178,7 +175,7 @@ yearly_plots <- function(df, gof_col, stat_pr, stat_st, product_name, title, yti
            ME = purrr::map_dbl(.data[[gof_col]], "ME"),
            r = purrr::map_dbl(.data[[gof_col]], "r"),
            rSD = purrr::map_dbl(.data[[gof_col]], "rSD")
-           )
+    )
   mean_df <- dat %>% 
     group_by(station, Source) %>% 
     summarise(m = mean(.data[[stat_pr]], na.rm = TRUE))
@@ -200,12 +197,12 @@ yearly_plots <- function(df, gof_col, stat_pr, stat_st, product_name, title, yti
     # # cor
     # geom_text(aes(label = paste("cor", round(r, 2))), 
     #           size = 4, x = 1983 + 12, y = max_y, na.rm = TRUE, 
-    #           inherit.aes = FALSE) +
-    # # rSD
-    # geom_text(aes(label = paste("rSD", round(rSD, 2))), 
-    #           size = 4, x = 1983 + 18, y = max_y, na.rm = TRUE, 
-    #           inherit.aes = FALSE) +
-    ggtitle(paste0("Gauge vs ", product_name, " ", title)) +
+  #           inherit.aes = FALSE) +
+  # # rSD
+  # geom_text(aes(label = paste("rSD", round(rSD, 2))), 
+  #           size = 4, x = 1983 + 18, y = max_y, na.rm = TRUE, 
+  #           inherit.aes = FALSE) +
+  ggtitle(paste0("Gauge vs ", product_name, " ", title)) +
     facet_wrap(~station)
   g
 }
@@ -224,7 +221,7 @@ stats_tables <- function(df, obj_col, obj_stats = comp_stats) {
                   values_from = obj_stats[i]) %>%
       data.frame()
     names(dat)[2:ncol(dat)] <- toupper(substr(names(dat)[2:ncol(dat)], 1, nchar(names(dat)[2:ncol(dat)]) - 5))
-  #dat[nrow(dat) + 1, ] <- c(list("(All)"), as.list(as.numeric(colMeans(dat[ , -1]))))
+    #dat[nrow(dat) + 1, ] <- c(list("(All)"), as.list(as.numeric(colMeans(dat[ , -1]))))
     dat %>%
       kable(digits = comp_stats_digits[i], caption = names(obj_stats[i]),
             format.args = list(big.mark = ",")) %>%
@@ -257,30 +254,30 @@ yearly_era5 <- gof_pr$data[[2]] %>%
 yearly_tamsat_era5 <- full_join(yearly_tamsat, yearly_era5, 
                                 by = c("station", "syear"))
 yearly_tamsat_era5 <- yearly_tamsat_era5 %>%
-    mutate(TAMSAT = ifelse(is.na(Gauge), NA, TAMSAT),
-           ERA5 = ifelse(is.na(Gauge), NA, ERA5))
+  mutate(TAMSAT = ifelse(is.na(Gauge), NA, TAMSAT),
+         ERA5 = ifelse(is.na(Gauge), NA, ERA5))
 dat <- yearly_tamsat_era5 %>%
-    pivot_longer(cols = all_of(c("Gauge", "TAMSAT", "ERA5")), 
-                 names_to = "Source", values_to = "total_rain", 
-                 names_ptypes = list(
-                   Source = factor(levels = c("Gauge", "TAMSAT", "ERA5"))))
+  pivot_longer(cols = all_of(c("Gauge", "TAMSAT", "ERA5")), 
+               names_to = "Source", values_to = "total_rain", 
+               names_ptypes = list(
+                 Source = factor(levels = c("Gauge", "TAMSAT", "ERA5"))))
 mean_df <- dat %>%
   group_by(station, Source) %>%
   summarise(m = mean(total_rain, na.rm = TRUE))
-  g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
-    geom_line() +
-    geom_point() +
-    geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
-    scale_x_continuous(breaks = seq(1980, 2015, 5), 
-                       limits = c(1978, 2017), expand = c(0, 0)) +
-    scale_y_continuous(limits = c(0, NA)) +
-    scale_colour_manual(values = c("black", c25[1:2])) +
-    labs(x = "Year", y = "Total Rainfall (mm/year)") +
-    ggtitle("Gauge vs TAMSAT vs ERA5 August to July total rainfall (mm/year)") +
-    facet_wrap(~station)
+g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
+  scale_x_continuous(breaks = seq(1980, 2015, 5), 
+                     limits = c(1978, 2017), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_colour_manual(values = c("black", c25[1:2])) +
+  labs(x = "Year", y = "Total Rainfall (mm/year)") +
+  ggtitle("Gauge vs TAMSAT vs ERA5 August to July total rainfall (mm/year)") +
+  facet_wrap(~station)
 ##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
-  ggsave(here("results", "zambia_syear_total_rain_tamsat_era5.png"),
-         g, width = 12, height = 6)
+ggsave(here("results", "zambia_syear_total_rain_tamsat_era5.png"),
+       g, width = 12, height = 6)
 
 
 ## ----yearly_n_obs, results="asis"---------------------------------------------------
@@ -435,11 +432,11 @@ zambia_markov <- zm_long_st %>%
          pr_rainday5max = pr_rain > 1 & pr_rain <= 5)
 
 f_zero_order_station <- rainday1 ~ (cos(s_doy * 1 * 2 * pi/366) +
-                                    sin(s_doy * 1 * 2 * pi/366) + 
-                                    cos(s_doy * 2 * 2 * pi/366) + 
-                                    sin(s_doy * 2 * 2 * pi/366) +
-                                    cos(s_doy * 3 * 2 * pi/366) +
-                                    sin(s_doy * 3 * 2 * pi/366))
+                                      sin(s_doy * 1 * 2 * pi/366) + 
+                                      cos(s_doy * 2 * 2 * pi/366) + 
+                                      sin(s_doy * 2 * 2 * pi/366) +
+                                      cos(s_doy * 3 * 2 * pi/366) +
+                                      sin(s_doy * 3 * 2 * pi/366))
 f_zero_order_product <- update.formula(f_zero_order_station, pr_rainday1 ~ .)
 
 predict_stack_lst <- list()
@@ -492,7 +489,7 @@ for(s in seq_along(stations)) {
   predict_stack <- predict_df %>% 
     melt(id.vars = c("station", "s_doy", "s_doy_date"),
          variable.name = "product", value.name = "prob")
-
+  
   predict_stack$product <- as.character(predict_stack$product)
   predict_stack$product2 <- predict_stack$product
   predict_stack$type <- "product1"
@@ -511,7 +508,7 @@ for(s in seq_along(stations)) {
                              substr(product, 1, nchar(product) - 5), product2),
            product2 = ifelse(endsWith(product, "thres"), 
                              substr(product, 1, nchar(product) - 7), product2)
-           )
+    )
   
   predict_stack$type <- factor(predict_stack$type, 
                                levels = unique(predict_stack$type))
@@ -597,21 +594,21 @@ zambia_markov <- zm_long_st %>%
          pr_lag3 = factor(ifelse(dplyr::lag(pr_rainday3, 1), "w", "d")),
          pr_lag4 = factor(ifelse(dplyr::lag(pr_rainday4, 1), "w", "d")),
          pr_lag5 = factor(ifelse(dplyr::lag(pr_rainday5, 1), "w", "d"))
-         )
+  )
 
 f_first_order_station <- rainday1 ~ ((cos(s_doy * 1 * 2 * pi/366) +
-                                       sin(s_doy * 1 * 2 * pi/366) +
-                                       cos(s_doy * 2 * 2 * pi/366) +
-                                       sin(s_doy * 2 * 2 * pi/366) +
-                                       cos(s_doy * 3 * 2 * pi/366) +
-                                       sin(s_doy * 3 * 2 * pi/366)) * lag1)
+                                        sin(s_doy * 1 * 2 * pi/366) +
+                                        cos(s_doy * 2 * 2 * pi/366) +
+                                        sin(s_doy * 2 * 2 * pi/366) +
+                                        cos(s_doy * 3 * 2 * pi/366) +
+                                        sin(s_doy * 3 * 2 * pi/366)) * lag1)
 
 f_first_order_product <- pr_rainday1 ~ ((cos(s_doy * 1 * 2 * pi/366) +
-                                       sin(s_doy * 1 * 2 * pi/366) +
-                                       cos(s_doy * 2 * 2 * pi/366) +
-                                       sin(s_doy * 2 * 2 * pi/366) +
-                                       cos(s_doy * 3 * 2 * pi/366) +
-                                       sin(s_doy * 3 * 2 * pi/366)) * pr_lag1)
+                                           sin(s_doy * 1 * 2 * pi/366) +
+                                           cos(s_doy * 2 * 2 * pi/366) +
+                                           sin(s_doy * 2 * 2 * pi/366) +
+                                           cos(s_doy * 3 * 2 * pi/366) +
+                                           sin(s_doy * 3 * 2 * pi/366)) * pr_lag1)
 
 predict_stack_lst <- list()
 for(s in seq_along(stations)) {
@@ -633,31 +630,31 @@ for(s in seq_along(stations)) {
     names(predict_df)[3] <- "pr_lag1"
     predict_df[[products[i]]] <- predict(first_order_product, newdata = predict_df, 
                                          type = "response")
-
+    
     f_first_order_product_2thres <- pr_rainday2 ~ ((cos(s_doy * 1 * 2 * pi/366) +
-                                       sin(s_doy * 1 * 2 * pi/366) +
-                                       cos(s_doy * 2 * 2 * pi/366) +
-                                       sin(s_doy * 2 * 2 * pi/366) +
-                                       cos(s_doy * 3 * 2 * pi/366) +
-                                       sin(s_doy * 3 * 2 * pi/366)) * pr_lag2)
+                                                      sin(s_doy * 1 * 2 * pi/366) +
+                                                      cos(s_doy * 2 * 2 * pi/366) +
+                                                      sin(s_doy * 2 * 2 * pi/366) +
+                                                      cos(s_doy * 3 * 2 * pi/366) +
+                                                      sin(s_doy * 3 * 2 * pi/366)) * pr_lag2)
     f_first_order_product_3thres <- pr_rainday3 ~ ((cos(s_doy * 1 * 2 * pi/366) +
-                                       sin(s_doy * 1 * 2 * pi/366) +
-                                       cos(s_doy * 2 * 2 * pi/366) +
-                                       sin(s_doy * 2 * 2 * pi/366) +
-                                       cos(s_doy * 3 * 2 * pi/366) +
-                                       sin(s_doy * 3 * 2 * pi/366) * pr_lag3))
+                                                      sin(s_doy * 1 * 2 * pi/366) +
+                                                      cos(s_doy * 2 * 2 * pi/366) +
+                                                      sin(s_doy * 2 * 2 * pi/366) +
+                                                      cos(s_doy * 3 * 2 * pi/366) +
+                                                      sin(s_doy * 3 * 2 * pi/366) * pr_lag3))
     f_first_order_product_4thres <- pr_rainday4 ~ ((cos(s_doy * 1 * 2 * pi/366) +
-                                       sin(s_doy * 1 * 2 * pi/366) +
-                                       cos(s_doy * 2 * 2 * pi/366) +
-                                       sin(s_doy * 2 * 2 * pi/366) +
-                                       cos(s_doy * 3 * 2 * pi/366) +
-                                       sin(s_doy * 3 * 2 * pi/366) * pr_lag4))
+                                                      sin(s_doy * 1 * 2 * pi/366) +
+                                                      cos(s_doy * 2 * 2 * pi/366) +
+                                                      sin(s_doy * 2 * 2 * pi/366) +
+                                                      cos(s_doy * 3 * 2 * pi/366) +
+                                                      sin(s_doy * 3 * 2 * pi/366) * pr_lag4))
     f_first_order_product_5thres <- pr_rainday5 ~ ((cos(s_doy * 1 * 2 * pi/366) +
-                                       sin(s_doy * 1 * 2 * pi/366) +
-                                       cos(s_doy * 2 * 2 * pi/366) +
-                                       sin(s_doy * 2 * 2 * pi/366) +
-                                       cos(s_doy * 3 * 2 * pi/366) +
-                                       sin(s_doy * 3 * 2 * pi/366) * pr_lag5))
+                                                      sin(s_doy * 1 * 2 * pi/366) +
+                                                      cos(s_doy * 2 * 2 * pi/366) +
+                                                      sin(s_doy * 2 * 2 * pi/366) +
+                                                      cos(s_doy * 3 * 2 * pi/366) +
+                                                      sin(s_doy * 3 * 2 * pi/366) * pr_lag5))
     fms_thres <- list(f_first_order_product_2thres, f_first_order_product_3thres,
                       f_first_order_product_4thres, f_first_order_product_5thres)
     mds <- list()
@@ -665,18 +662,18 @@ for(s in seq_along(stations)) {
       first_order <- glm(fms_thres[[j]], data = dat_prod, family = binomial)
       names(predict_df)[3] <- paste0("pr_lag", j + 1)
       predict_df[[paste0(products[i], "_", j + 1, "thres")]] <- predict(first_order,
-                                                                    newdata = predict_df,
-                                                                    type = "response")
+                                                                        newdata = predict_df,
+                                                                        type = "response")
     }
   }
   names(predict_df)[3] <- "lag1"
   predict_stack <- predict_df %>% melt(id.vars = c("station", "s_doy", "s_doy_date", "lag1"), 
                                        variable.name = "product", value.name = "prob")
-
+  
   predict_stack$product <- as.character(predict_stack$product)
   predict_stack$product2 <- predict_stack$product
   predict_stack$type <- "product1"
-
+  
   predict_stack <- predict_stack %>%
     mutate(type = ifelse(startsWith(product, "station"), "station1", type),
            type = ifelse(endsWith(product, "max"),
@@ -689,8 +686,8 @@ for(s in seq_along(stations)) {
                              substr(product, 1, nchar(product) - 5), product2),
            product2 = ifelse(endsWith(product, "thres"),
                              substr(product, 1, nchar(product) - 7), product2)
-           )
-
+    )
+  
   predict_stack$type <- factor(predict_stack$type, levels = unique(predict_stack$type))
   predict_stack_lst[[length(predict_stack_lst) + 1]] <- predict_stack
 }
@@ -710,9 +707,9 @@ for (i in seq_along(thres)) {
                          colour = lag1, linetype = type)) +
       geom_line() +
       facet_wrap(~station) +
-    # scale_color_manual(values = c("black", viridis(5, end = 0.8)),
-    #                    labels = curve_labs, name = "Curve") +
-    #scale_size_manual(values = c(1.3, rep(0.8, 5)), labels = curve_labs, name = "Curve") +
+      # scale_color_manual(values = c("black", viridis(5, end = 0.8)),
+      #                    labels = curve_labs, name = "Curve") +
+      #scale_size_manual(values = c(1.3, rep(0.8, 5)), labels = curve_labs, name = "Curve") +
       scale_x_date(breaks = seq.Date(as.Date("1999/11/1"), as.Date("2000/5/1"), by = "2 months"), 
                    date_labels = "%b", name = "Date") +
       scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), name = "Rain day frequency (rain days/day)") +
@@ -763,7 +760,7 @@ zm_cats <- zm_long_st %>%
   mutate(rain_cats = cut(rain, c(0, 0.85, 5, 20, 40, Inf), include.lowest = TRUE,
                          right = FALSE, labels = cat_labs),
          pr_rain_cats = cut(pr_rain, c(0, 0.85, 5, 20, 40, Inf), include.lowest = TRUE,
-                         right = FALSE, labels = cat_labs))
+                            right = FALSE, labels = cat_labs))
 
 
 ## ----rain_cats_overall--------------------------------------------------------------
@@ -809,7 +806,7 @@ zm_long_st <- zm_long_st %>%
                          labels = c("Dry", month.abb[c(11:12, 1:4)])),
          product = toupper(substr(product, 1, nchar(as.character(product)) - 5)),
          product = factor(product, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2"))
-         )
+  )
 
 thresh_month <- zm_long_st %>%
   mutate(st_wd0p85 = rain > 0.85) %>%
