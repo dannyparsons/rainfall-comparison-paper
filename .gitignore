@@ -49,7 +49,9 @@ po/*~
 rsconnect/
 
 # data folder, use data locally only
-data/
+data/*
+!data/README.md
 
 # results folder, store results locally only
-results/
+results/*
+!results/README.md
