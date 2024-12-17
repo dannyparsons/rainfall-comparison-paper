@@ -95,25 +95,25 @@ zam_data <- zam_data %>%
   mutate(country = stringr::str_to_title(country),
          station = stringr::str_to_title(station))
 
-saveRDS(zam_data, here(proc_station_dir, "zambia_stations.RDS"))
+saveRDS(zam_data, here(proc_station_dir, "zambia_stations_updated.RDS"))
 
 # Summarise Metadata ------------------------------------------------------
 
-station_metadata <- station_metadata %>% 
-  mutate(country = stringr::str_to_title(country),
-         station = stringr::str_to_title(station))
-
-station_summary <- zam_data %>%
-  mutate(year = year(date)) %>%
-  group_by(country, station) %>%
-  summarise(min_year = min(year),
-            max_year = max(year),
-            years = max_year - min_year + 1,
-            rain_complete = mean(!is.na(rain)),
-            tmin_complete = mean(!is.na(tmin)),
-            tmax_complete = mean(!is.na(tmax)))
-
-station_metadata <- station_metadata %>% 
-  full_join(station_summary, by = c("country", "station"))
+# station_metadata <- station_metadata %>% 
+#   mutate(country = stringr::str_to_title(country),
+#          station = stringr::str_to_title(station))
+# 
+# station_summary <- zam_data %>%
+#   mutate(year = year(date)) %>%
+#   group_by(country, station) %>%
+#   summarise(min_year = min(year),
+#             max_year = max(year),
+#             years = max_year - min_year + 1,
+#             rain_complete = mean(!is.na(rain)),
+#             tmin_complete = mean(!is.na(tmin)),
+#             tmax_complete = mean(!is.na(tmax)))
+# 
+# station_metadata <- station_metadata %>% 
+#   full_join(station_summary, by = c("country", "station"))
 
 saveRDS(station_metadata, here(proc_station_dir, "zambia_stations_metadata.RDS"))

@@ -11,8 +11,8 @@ library(sp)
 
 source(here("src", "helper_funs.R"))
 
-zambia <- readRDS(here("data", "station", "cleaned", "zambia_1979_qc.RDS"))
-zambia_metadata <- readRDS(here("data", "station", "processed", "zambia_stations_metadata.RDS"))
+zambia <- readRDS(here("data", "station", "cleaned", "zambia_1979_update_qc.RDS"))
+zambia_metadata <- readRDS(here("data", "station", "processed", "zambia_stations_metadata_updated.RDS"))
 
 # station location check --------------------------------------------------
 zambia_sf <- ne_countries(country = "Zambia", returnclass = "sf")
