@@ -19,9 +19,7 @@ library(dplyr)
 
 source(here("src", "helper_funs.R"))
 
-zm <- readRDS(here("data", "station", "cleaned", "zambia_gridded.RDS")) %>%
-  dplyr::select(-(arc2_rain))
-# 1 Aug = 214
+zm <- readRDS(here("data", "station", "cleaned", "zambia_gridded_merged.RDS")) 
 s_doy_start <- 214
 zm <- zm %>% 
   mutate(doy = yday_366(date),
@@ -36,8 +34,8 @@ zm <- zm %>%
   ) %>%
   filter(year >= 1983)
 
-# Not using ENACTS for most analyses so remove.
-zm$enacts_rain <- NULL
+# Not using ENACTS0 for most analyses so remove.
+zm$enacts0_rain <- NULL
 
 zm_long_st <- zm %>% 
   melt(id.vars = c("station", "date", "year", "syear", "month", "month_abb", 
@@ -46,8 +44,8 @@ zm_long_st <- zm %>%
        variable.name = "product", value.name = "pr_rain")
 
 zm_long_st$product <- factor(zm_long_st$product, 
-                             levels = c("chirps_rain", "era5_rain", "tamsat_rain",
-                                        "imerg_rain", "rfe2_rain"))
+                             levels = c("chirps_rain", "era5_rain", "agera5_rain", "tamsat_rain",
+                                        "enacts_rain"))
 zm_long <- zm %>% 
   melt(id.vars = c("station", "date", "year", "syear", "month", "month_abb", "doy", "s_doy"),
        measure.vars = names(zm)[endsWith(names(zm), "rain")],
@@ -56,14 +54,14 @@ zm_long <- zm %>%
 
 zm_long$product <- recode(zm_long$product, rain = "station")
 zm_long$product <- factor(zm_long$product, 
-                          levels = c("station", "chirps_rain", "era5_rain", "tamsat_rain",
-                                     "imerg_rain", "rfe2_rain"))
+                          levels = c("station", "chirps_rain", "era5_rain", "agera5_rain", "tamsat_rain",
+                                     "enacts_rain"))
 stations <- c("Kasama", "Mansa", "Mpika", "Magoye", "Moorings", "Choma", "Livingstone")
 products <- levels(zm_long$product)
 products <- products[-1]
 names(products) <- substr(products, 1, nchar(products) - 5)
 
-metadata_zm <- readRDS(here("data", "station", "processed", "zambia_stations_metadata.RDS"))
+metadata_zm <- readRDS(here("data", "station", "processed", "zambia_stations_metadata_updated.RDS"))
 
 metadata_zm$station <- factor(metadata_zm$station, levels = stations)
 zm_long$station <- factor(zm_long$station, levels = stations)
@@ -246,7 +244,7 @@ walk2(p_syear_total$paths, p_syear_total$p, ggsave, width = 12, height = 6)
 
 
 ## ----yearly_total_tamsat_era5-------------------------------------------------------
-yearly_tamsat <- gof_pr$data[[3]] %>%
+yearly_tamsat <- gof_pr$data[[4]] %>%
   dplyr::select(station, syear, Gauge = total_rain__station, 
                 TAMSAT = total_rain)
 yearly_era5 <- gof_pr$data[[2]] %>%
@@ -314,7 +312,7 @@ names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1,
                                         nchar(names(df)[3:ncol(df)]) - 5))
 ##! Table zm_total_metrics (Section 4.3.2.1)
 df %>% 
-  select(metric, station, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
+  select(metric, station, CHIRPS, ERA5, AGERA5, TAMSAT, ENACTS) %>%
   kable() %>%
   column_spec(column = 5, border_right = TRUE) %>%
   collapse_rows(columns = 1) %>%
@@ -335,7 +333,7 @@ liv_year <- gof_pr %>%
                                       Gauge = "n_rain__station", Estimate = "n_rain"),
          Source = factor(Source, levels = c("Gauge", "Estimate")),
          product = toupper(substr(product, 1, nchar(product) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")))
+         product = factor(product, levels = c("CHIRPS", "ERA5", "AGERA5", "TAMSAT", "ENACTS")))
 
 mean_df <- liv_year %>%
   group_by(product, Source) %>%
@@ -375,7 +373,7 @@ names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1,
                                         nchar(names(df)[3:ncol(df)]) - 5))
 ##! Table zm_liv_n_metric (Section 4.3.2.1)
 df %>% 
-  select(metric, CHIRPS, ERA5, TAMSAT, IMERG, RFE2) %>%
+  select(metric, CHIRPS, ERA5, AGERA5,  TAMSAT, ENACTS) %>%
   kable() %>%
   column_spec(column = 4, border_right = TRUE) %>%
   collapse_rows(columns = 1) %>%
@@ -396,7 +394,7 @@ liv_year <- gof_pr %>%
                                       Gauge = "mean_rain__station", Estimate = "mean_rain"),
          Source = factor(Source, levels = c("Gauge", "Estimate")),
          product = toupper(substr(product, 1, nchar(product) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")))
+         product = factor(product, levels = c("CHIRPS", "ERA5","AGERA5", "TAMSAT", "ENACTS")))
 
 mean_df <- liv_year %>%
   group_by(product, Source) %>%
@@ -786,7 +784,7 @@ zm_acc_each <- zm_cats %>%
 ggplot(zm_acc_each, aes(x = rain_cats, y = accuracy, fill = product, group = product)) +
   geom_col(position = "dodge") +
   scale_fill_manual(values = c25[1:5], 
-                    labels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2")) +
+                    labels = c("CHIRPS", "ERA5", "AGERA5", "TAMSAT", "ENACTS")) +
   labs(x = "Rainfall Intensity categories (mm/day)", y = "Probability of detection") +
   theme(axis.text.x = element_text(size = 8)) +
   labs(fill = "Product") +
@@ -805,7 +803,7 @@ zm_long_st <- zm_long_st %>%
          season = factor(season, levels = c("Dry", 11:12, 1:4), 
                          labels = c("Dry", month.abb[c(11:12, 1:4)])),
          product = toupper(substr(product, 1, nchar(as.character(product)) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "TAMSAT", "IMERG", "RFE2"))
+         product = factor(product, levels = c("CHIRPS", "ERA5", "AGERA5", "TAMSAT", "ENACTS"))
   )
 
 thresh_month <- zm_long_st %>%

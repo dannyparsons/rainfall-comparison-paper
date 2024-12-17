@@ -23,9 +23,7 @@ source(here("src", "helper_funs.R"))
 
 # Data Import -------------------------------------------------------------
 
-zm <- readRDS(here("data", "station", "cleaned", "zambia_gridded.RDS")) %>%
-  dplyr::select(-(arc2_rain))
-
+zm <- readRDS(here("data", "station", "cleaned", "zambia_gridded_merged.RDS"))
 s_doy_start <- 214
 zm <- zm %>% mutate(doy = yday_366(date),
                     s_doy = (doy - s_doy_start + 1) %% 366,

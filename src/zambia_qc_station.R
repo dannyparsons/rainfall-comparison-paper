@@ -5,12 +5,14 @@ library(lubridate)
 
 source(here("src", "helper_funs.R"))
 
-zambia <- readRDS(here("data", "station", "processed", "zambia_stations.RDS"))
+zambia <- readRDS(here("data", "station", "processed", "zambia_stations_updated.RDS"))
+data_dir <- "data"
+proc_station_dir <- paste(data_dir, "station/processed", sep = "/")
 
 zambia <- zambia %>% 
   mutate(month = factor(lubridate::month(date)),
          year = lubridate::year(date)) %>%
-  filter(country == "Zambia" & year >= 1979) %>%
+  filter(country == "Zambia" & year >= 1983) %>%
   dplyr::select(-country)
 
 zambia_year <- zambia %>%
@@ -105,12 +107,10 @@ zambia <- zambia %>% mutate(rain = replace(rain,
 display_daily(zambia %>% filter(station == "Mansa" & year == 2015), 
               Stations = "Mansa", Years = 2015, Variables = "rain")
 
-# Data ends in 2016
-# Suggest making 2015 missing until data is updated
-zambia <- zambia %>% mutate(rain = replace(rain, 
-                                           station == "Mansa" & 
-                                             year == 2015, 
-                                           NA))
+#zambia <- zambia %>% mutate(rain = replace(rain, 
+#                                           station == "Mansa" & 
+#                                             year == 2015, 
+#                                           NA))
 
 display_daily(zambia %>% filter(station == "Mansa" & year == 2016), 
               Stations = "Mansa", Years = 2016, Variables = "rain")
@@ -127,11 +127,11 @@ display_daily(zambia %>% filter(station == "Magoye" & year == 2014),
 
 # Lots of missing around this period
 # Suggest making Nov 2014 missing until data is updated
-zambia <- zambia %>% mutate(rain = replace(rain, 
-                                           station == "Magoye" & 
-                                             year == 2014 &
-                                             month == 11, 
-                                           NA))
+#zambia <- zambia %>% mutate(rain = replace(rain, 
+#                                           station == "Magoye" & 
+#                                             year == 2014 &
+#                                             month == 11, 
+#                                           NA))
 
 # Dry months check - April/October
 drymonths_check <- zambia %>%
@@ -141,8 +141,8 @@ drymonths_check <- zambia %>%
   filter(t_rain == 0)
 if(nrow(drymonths_check) > 0) View(drymonths_check)
 
-# daily graph
-# for(s in unique(zambia$station)) {
+ #daily graph
+ #for(s in unique(zambia$station)) {
 #   g <- ggplot(zambia %>% filter(station == s), aes(x = date, y = rain)) +
 #     geom_col(colour = "blue") +
 #     geom_rug(data = filter(zambia, station == s & is.na(rain)), colour = "red") +
@@ -150,4 +150,25 @@ if(nrow(drymonths_check) > 0) View(drymonths_check)
 #   print(g)
 # }
 
-saveRDS(zambia, here("data", "station", "cleaned", "zambia_1979_qc.RDS"))
+saveRDS(zambia, here("data", "station", "cleaned", "zambia_1979_update_qc.RDS")) 
+
+# Summarise Metadata ------------------------------------------------------
+zambia$country <- "Zambia"
+station_metadata <- readRDS(here(proc_station_dir, "zambia_stations_metadata.RDS"))
+
+station_metadata <- station_metadata %>% 
+  mutate(country = stringr::str_to_title(country),
+         station = stringr::str_to_title(station))
+
+station_summary <- zambia %>%
+  mutate(year = year(date)) %>%
+  group_by(country, station) %>%
+  summarise(min_year = min(year),
+            max_year = max(year),
+            years = max_year - min_year + 1,
+            rain_complete = mean(!is.na(rain)))
+
+station_metadata <- station_metadata %>% 
+  full_join(station_summary, by = c("country", "station"))
+
+saveRDS(station_metadata, here(proc_station_dir, "zambia_stations_metadata_updated.RDS"))
