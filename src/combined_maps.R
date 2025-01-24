@@ -121,13 +121,6 @@ plot_m_rain_rainfall_map <- function(data, title) {
     )
 }
 
-#total rainfall
-era5_total_rain <- plot_T_rainfall_map(total_means_era5_zambia, "(b) ERA5")
-chirps_total_rain <- plot_T_rainfall_map(total_means_chirps_zambia, "(c) CHIRPS")
-tamsat_total_rain <- plot_T_rainfall_map(total_means_tamsat_zambia, "(d) TAMSAT")
-agera5_total_rain <- plot_T_rainfall_map(total_means_agera5_zambia, "(e) AGERA5")
-enacts_old_total_rain <- plot_T_rainfall_map(enacts_old_t_rain, "(f) ENACTS_old")
-
 #plot new enacts
 files <- list.files("/media/johnbagiliko/Seagate Backup Plus Drive/ENACTS/new_enacts", 
                     pattern = "data_.*\\.nc", full.names = TRUE)
@@ -138,6 +131,8 @@ lat <- ncvar_get(nc, "Y")
 nc_close(nc)
 
 mean_rainfall <- readRDS(here(maps_data, "new_enacts", "array_data", "mean_rainfall_array.rds"))
+n_rainfall <- readRDS(here(maps_data, "new_enacts", "array_data", "mean_rainy_days_array.rds"))
+mean_r_per_rday <- readRDS(here(maps_data, "new_enacts", "array_data", "mean_rain_per_day_array.rds"))
 
 create_spatial_df <- function(data, lon, lat, name) {
   df <- as.data.frame(as.table(data))
@@ -147,35 +142,53 @@ create_spatial_df <- function(data, lon, lat, name) {
   st_as_sf(df, coords = c("lon", "lat"), crs = st_crs(zambia_sf), remove = FALSE)
 }
 
-rainfall_sf <- create_spatial_df(data = mean_rainfall, lon, lat, "rainfall")
+enacts_t_rain_sf <- create_spatial_df(data = mean_rainfall, lon, lat, "total_rain")
+enacts_n_rain_sf <- create_spatial_df(data = n_rainfall, lon, lat, "n_rain")
+enacts_mean_rain_sf <- create_spatial_df(data = mean_r_per_rday, lon, lat, "mean_rain")
 
-rainfall_sf_enacts <- rainfall_sf %>% 
-  ungroup() %>%
-  select(lon, lat, rainfall) %>% 
-  rename(total_rain = "rainfall")
-rainfall_sf_enacts$geometry <- NULL
-enacts_total_rain <- plot_T_rainfall_map(rainfall_sf_enacts, "(a) ENACTS")
+reshape_enacts_for_map <- function(sf_data, val_col_name){
+  rainfall_sf_enacts <- sf_data %>% 
+    ungroup() %>%
+    select(lon, lat, {{ val_col_name }})
+  rainfall_sf_enacts$geometry <- NULL
+  return(rainfall_sf_enacts)
+}
+
+#total rainfall
+t_rain_df_enacts <- reshape_enacts_for_map(enacts_t_rain_sf, total_rain)
+enacts_old_total_rain <- plot_T_rainfall_map(enacts_old_t_rain, "(a) ENACTS_old")
+era5_total_rain <- plot_T_rainfall_map(total_means_era5_zambia, "(b) ERA5")
+chirps_total_rain <- plot_T_rainfall_map(total_means_chirps_zambia, "(c) CHIRPS")
+tamsat_total_rain <- plot_T_rainfall_map(total_means_tamsat_zambia, "(d) TAMSAT")
+agera5_total_rain <- plot_T_rainfall_map(total_means_agera5_zambia, "(e) AGERA5")
+enacts_total_rain <- plot_T_rainfall_map(t_rain_df_enacts, "(a) ENACTS")
+
 
 
 #number of rainy days
-enacts_old_n_rain = plot_n_rainfall_map(enacts_old_n_rain, "(g) ENACTS_old")
-era5_n_rain <- plot_n_rainfall_map(n_means_era5_zambia, "(h) ERA5")
-chirps_n_rain <- plot_n_rainfall_map(n_means_chirps_zambia, "(i) CHIRPS")
-tamsat_n_rain <- plot_n_rainfall_map(n_means_tamsat_zambia, "(j) TAMSAT")
-agera5_n_rain <- plot_n_rainfall_map(n_means_agera5_zambia, "(k) AGERA5")
+n_rain_df_enacts <- reshape_enacts_for_map(enacts_n_rain_sf, n_rain)
+enacts_old_n_rain = plot_n_rainfall_map(enacts_old_n_rain, "(a) ENACTS_old")
+era5_n_rain <- plot_n_rainfall_map(n_means_era5_zambia, "(b) ERA5")
+chirps_n_rain <- plot_n_rainfall_map(n_means_chirps_zambia, "(c) CHIRPS")
+tamsat_n_rain <- plot_n_rainfall_map(n_means_tamsat_zambia, "(d) TAMSAT")
+agera5_n_rain <- plot_n_rainfall_map(n_means_agera5_zambia, "(e) AGERA5")
+enacts_n_rain <- plot_n_rainfall_map(n_rain_df_enacts, "(f) ENACTS")
+
 
 #mean rain per rainy day
-enacts_old_mean_rain = plot_m_rain_rainfall_map(enacts_old_mean_rain, "(l) ENACTS_old")
-era5_mean_rain <- plot_m_rain_rainfall_map(mean_means_era5_zambia, "(m) ERA5")
-chirps_mean_rain <- plot_m_rain_rainfall_map(mean_means_chirps_zambia, "(n) CHIRPS")
-tamsat_mean_rain <- plot_m_rain_rainfall_map(mean_means_tamsat_zambia, "(o) TAMSAT")
-agera5_mean_rain <- plot_m_rain_rainfall_map(mean_means_agera5_zambia, "(p) AGERA5")
+mean_rain_df_enacts <- reshape_enacts_for_map(enacts_mean_rain_sf, mean_rain)
+enacts_old_mean_rain = plot_m_rain_rainfall_map(enacts_old_mean_rain, "(a) ENACTS_old")
+era5_mean_rain <- plot_m_rain_rainfall_map(mean_means_era5_zambia, "(b) ERA5")
+chirps_mean_rain <- plot_m_rain_rainfall_map(mean_means_chirps_zambia, "(c) CHIRPS")
+tamsat_mean_rain <- plot_m_rain_rainfall_map(mean_means_tamsat_zambia, "(d) TAMSAT")
+agera5_mean_rain <- plot_m_rain_rainfall_map(mean_means_agera5_zambia, "(e) AGERA5")
+enacts_mean_rain <- plot_m_rain_rainfall_map(mean_rain_df_enacts, "(f) ENACTS")
 
-combined_plot_t_rain <- grid.arrange(enacts_total_rain, era5_total_rain, chirps_total_rain, tamsat_total_rain, agera5_total_rain, enacts_old_total_rain, ncol = 2)
+combined_plot_t_rain <- grid.arrange(enacts_old_total_rain, era5_total_rain, chirps_total_rain, tamsat_total_rain, agera5_total_rain, enacts_total_rain, ncol = 2)
 
-combined_plot_n_rain <- grid.arrange(enacts_old_n_rain, era5_n_rain, chirps_n_rain, tamsat_n_rain, agera5_n_rain, ncol = 2)
+combined_plot_n_rain <- grid.arrange(enacts_old_n_rain, era5_n_rain, chirps_n_rain, tamsat_n_rain, agera5_n_rain, enacts_n_rain, ncol = 2)
 
-combined_plot_mean_rain <- grid.arrange(enacts_old_mean_rain, era5_mean_rain, chirps_mean_rain, tamsat_mean_rain, agera5_mean_rain, ncol = 2)
+combined_plot_mean_rain <- grid.arrange(enacts_old_mean_rain, era5_mean_rain, chirps_mean_rain, tamsat_mean_rain, agera5_mean_rain, enacts_mean_rain, ncol = 2)
 
 
 ggsave(here("results", "maps", "mean_total_rain_combined_plot_new.png"), plot = combined_plot_t_rain, width = 10, height = 8, dpi = 300)
@@ -183,3 +196,4 @@ ggsave(here("results", "maps", "mean_total_rain_combined_plot_new.png"), plot = 
 ggsave(here("results", "maps", "mean_n_rain_combined_plot_new.png"), plot = combined_plot_n_rain, width = 10, height = 8, dpi = 300)
 
 ggsave(here("results", "maps", "mean_mean_rain_combined_plot_new.png"), plot = combined_plot_mean_rain, width = 10, height = 8, dpi = 300)
+
