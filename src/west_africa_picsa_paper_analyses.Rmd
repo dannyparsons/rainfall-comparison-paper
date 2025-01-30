@@ -456,7 +456,7 @@ stats_tables(gof_month, "gof__n_rain0p85")
 
 - 
 
-```{r markov_chain_setup}
+```{r markov_chain_setup1}
 zambia_markov <- zm_long_st %>% 
   filter(!is.na(rain) & !is.na(pr_rain)) %>%
   mutate(rainday1 = rain > 0.85,
@@ -587,7 +587,7 @@ for(s in seq_along(products)) {
 
 ## First Order Markov Chain models
 
-```{r markov_chain_setup}
+```{r markov_chain_setup2}
 zambia_markov <- zm_long_st %>% 
   filter(!is.na(rain) & !is.na(pr_rain)) %>%
   mutate(rainday1 = rain > 0.85,
