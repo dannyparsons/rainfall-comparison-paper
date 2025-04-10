@@ -21,6 +21,7 @@ library(dplyr)
 source(here("src", "helper_funs.R"))
 
 zm <- readRDS(here("data", "station", "cleaned", "husbands_gridded.RDS"))
+zm <- zm %>% select(station, date, rain, tmax, tmin, month, year, year_groups, chirps_rain, era5_rain)
 # 1 Jan = 1
 s_doy_start <- 1
 zm <- zm %>% mutate(doy = yday_366(date),
@@ -244,24 +245,36 @@ hus_year <- gof_pr %>%
                                       Gauge = "total_rain__station", Estimate = "total_rain"),
          Source = factor(Source, levels = c("Gauge", "Estimate")),
          product = toupper(substr(product, 1, nchar(product) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "IMERG")))
+         product = factor(product, levels = c("CHIRPS", "ERA5")))
 
 mean_df <- hus_year %>%
   group_by(product, Source) %>%
   summarise(m = mean(total_rain, na.rm = TRUE))
-
 g <- ggplot(hus_year, aes(x = syear, y = total_rain, colour = Source)) +
   geom_line() +
   geom_point() +
   geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
-  scale_x_continuous(breaks = seq(1980, 2020, 5), limits = c(1978, 2020), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(1980, 2020, 5), limits = c(1978, 2022), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, NA)) +
-  labs(x = "Year", y = "Total Rainfall (mm/year)") +
-  ggtitle("Gauge vs estimate Annual total rainfall at Husbands") +
+  labs(x = "", y = "Total Rainfall (mm/year)") +
+  theme(
+    legend.position = c(0.85, 0.15),
+    strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+    panel.spacing = unit(0.3, "lines"),
+    #axis.text.x = element_text(angle = 45),
+    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    text = element_text(face = "bold", size = 12, family = "Helvetica")
+  ) +
+  facet_wrap(~product) +
+  scale_color_manual(
+    values = c("Gauge" = "black", "Estimate" = "dodgerblue2"),  
+    name = "Source" 
+  ) +
+  #ggtitle("Gauge vs estimate Annual total rainfall at Husbands") +
   facet_wrap(~product, ncol = 2)
 g
 ##! Figure hus_total (Section 4.3.2.1)
-ggsave(here("results", paste0("barbados_", "syear_", "total_rain", "_", "all", ".png")),
+ggsave(here("results", paste0("Fig5.jpeg")),
        width = 12, height = 6)
 
 ## ----yearly_n_obs---------------------------------------------------
@@ -295,7 +308,7 @@ names(df)[3:ncol(df)] <- toupper(substr(names(df)[3:ncol(df)], 1,
 
 ##! Table hus_total_metrics (Section 4.3.2.1)
 df %>% 
-  dplyr::select(metric, CHIRPS, ERA5, IMERG) %>%
+  dplyr::select(metric, CHIRPS, ERA5) %>%
   kable() %>%
   collapse_rows(columns = 1) %>%
   skable()
@@ -392,13 +405,27 @@ g <- ggplot(hus_month %>% filter(product == "CHIRPS"),
   geom_line() +
   geom_point() +
   geom_hline(data = mean_df %>% filter(product == "CHIRPS"), aes(yintercept = m, colour = Source)) +
-  scale_x_continuous(breaks = seq(1980, 2020, 5), limits = c(1978, 2020), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(1980, 2020, 5), limits = c(1978, 2022), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, NA)) +
   scale_colour_discrete(labels = c("Gauge", "CHIRPS")) +
   labs(x = "Year", y = "Total Rainfall (mm/month)") +
-  ggtitle("Gauge vs CHIRPS Monthly total rainfall at Husbands") +
-  facet_wrap(~ month_abb)
+  #ggtitle("Gauge vs CHIRPS Monthly total rainfall at Husbands") +
+  theme(
+    legend.position = c(0.35, 0.9),
+    strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+    panel.spacing = unit(0.3, "lines"),
+    axis.text.x = element_text(angle = 45),
+    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    text = element_text(face = "bold", size = 12, family = "Helvetica")
+  ) +
+  facet_wrap(~ month_abb)+
+  scale_color_manual(
+    values = c("Gauge" = "black", "Estimate" = "dodgerblue2"),  
+    name = "Source" 
+  )
+g
+
 
 ##! Figure hus_total_month (Section 4.3.2.1)
-ggsave(here("results", paste0("barbados_", "monthly_", "total_rain", "_", "chirps", ".png")),
+ggsave(here("results", paste0("Fig6.jpeg")),
        width = 12, height = 6)

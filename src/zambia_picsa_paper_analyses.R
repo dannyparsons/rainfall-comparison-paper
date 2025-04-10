@@ -270,11 +270,43 @@ g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
                      limits = c(1978, 2017), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, NA)) +
   scale_colour_manual(values = c("black", c25[1:2])) +
-  labs(x = "Year", y = "Total Rainfall (mm/year)") +
-  ggtitle("Gauge vs TAMSAT vs ERA5 August to July total rainfall (mm/year)") +
-  facet_wrap(~station)
+  labs(x = "", y = "Total Rainfall (mm/year)") +
+  theme(legend.position = c(0.75, 0.15),
+        strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+        panel.spacing = unit(0.1, "lines"),
+        axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+        text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+        ) +
+  facet_wrap(~station) 
 ##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
-ggsave(here("results", "zambia_syear_total_rain_tamsat_era5.png"),
+ggsave(here("results", "Fig4.jpeg"),
+       g, width = 12, height = 6)
+
+g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
+  scale_x_continuous(breaks = seq(1980, 2015, 5), 
+                     limits = c(1978, 2017), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_colour_manual(values = c("black", c25[1:2])) +
+  labs(x = "", y = "Total Rainfall (mm/year)") +
+  theme(legend.position = c(0.75, 0.15), 
+        strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+        panel.spacing = unit(0.1, "lines"),
+        panel.grid.major = element_blank(), 
+        axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+        panel.grid.minor = element_blank(), 
+        #legend.title = element_blank(), 
+        panel.background = element_rect(fill = "white", colour = "white"), 
+        text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+        #axis.line = element_line(color = "black", linewidth = 0.5),
+        axis.line.x = element_line(color = "black", linewidth = 0.2), 
+        axis.line.y = element_line(color = "black", linewidth = 0.2) 
+        ) +
+  facet_wrap(~station) 
+##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
+ggsave(here("results", "Fig4.png"),
        g, width = 12, height = 6)
 
 
@@ -345,12 +377,22 @@ g <- ggplot(liv_year, aes(x = syear, y = n_rain, colour = Source)) +
   geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
   scale_x_continuous(breaks = seq(1980, 2015, 5), limits = c(1978, 2017), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, NA)) +
-  labs(x = "Year", y = "Rain day (> 0.85) frequency (rain day/year)") +
-  ggtitle("Gauge vs estimate August to July rain day frequency at Livingstone") +
-  facet_wrap(~product)
+  labs(x = "", y = "Rain day (> 0.85) frequency (rain day/year)") +
+  theme(
+    legend.position = c(0.85, 0.15),
+    strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+    panel.spacing = unit(0.1, "lines"),
+    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    text = element_text(face = "bold", size = 12, family = "Helvetica")
+  ) +
+  facet_wrap(~product) +
+  scale_color_manual(
+    values = c("Gauge" = "black", "Estimate" = "dodgerblue2"),  
+    name = "Source" 
+  )
 g
 ##! Figure zm_liv_n (Section 4.3.2.1)
-ggsave(here("results", paste0("zambia_", "livingstone_", "n_rain", ".png")),
+ggsave(here("results", paste0("Fig7.jpeg")),
        width = 12, height = 6)
 
 
@@ -406,12 +448,24 @@ g <- ggplot(liv_year, aes(x = syear, y = mean_rain, colour = Source)) +
   geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
   scale_x_continuous(breaks = seq(1980, 2020, 5), limits = c(1978, 2017), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, NA)) +
-  labs(x = "Year", y = "Mean rain intensity (mm/rain day)") +
-  ggtitle("Gauge vs estimate August to July mean rain intensity at Livingstone") +
+  labs(x = "", y = "Mean rain intensity (mm/rain day)") +
+  #ggtitle("Gauge vs estimate August to July mean rain intensity at Livingstone") +
+  theme(
+    legend.position = c(0.85, 0.15),
+    strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+    panel.spacing = unit(0.1, "lines"),
+    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    text = element_text(face = "bold", size = 12, family = "Helvetica")
+  ) +
+  facet_wrap(~product) +
+  scale_color_manual(
+    values = c("Gauge" = "black", "Estimate" = "dodgerblue2"),  
+    name = "Source" 
+  ) + 
   facet_wrap(~product)
 g
 ##! Figure zm_liv_mean (Section 4.3.2.1)
-ggsave(here("results", paste0("zambia_", "livingstone_", "mean_rain", ".png")),
+ggsave(here("results", paste0("Fig8.jpeg")),
        width = 12, height = 6)
 
 
@@ -538,13 +592,13 @@ for(s in seq_along(products)) {
     scale_linetype_manual(values = c("solid", rep("longdash", 5)), 
                           labels = curve_labs,
                           name = "Curve") +
-    theme(aspect.ratio = 0.5) +
-    ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
-                   "estimated rain day frequency (rain days/day) at various thresholds"))
+    theme(aspect.ratio = 0.5) #+
+    #ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
+                   #"estimated rain day frequency (rain days/day) at various thresholds"))
   ##! Figures zm_markov_zero_tamsat, zm_markov_zero_chirps 
   ##! and zm_markov_zero_era5 (Section 4.3.2.2)
   ggsave(here("results", 
-              paste0("zambia_", "markov_zero", "_product_", names(products)[s], ".png")),
+              paste0("zambia_", "markov_zero", "_product_", names(products)[s], ".jpeg")),
          plot = g, width = 12, height = 6)
 }
 
@@ -696,6 +750,7 @@ predict_stack_all$station <- factor(predict_stack_all$station, levels = stations
 ## ----markov_chain_first_plots_products----------------------------------------------
 thres <- c(0.85, 2, 3, 4, 5)
 names_thres <- c("product1", paste0(2:5, "thres"))
+
 for (i in seq_along(thres)) {
   for(s in seq_along(products)) {
     curve_labs <- paste0(c("", rep(toupper(names(products)[s]), 5)), types)
@@ -710,17 +765,63 @@ for (i in seq_along(thres)) {
       #scale_size_manual(values = c(1.3, rep(0.8, 5)), labels = curve_labs, name = "Curve") +
       scale_x_date(breaks = seq.Date(as.Date("1999/11/1"), as.Date("2000/5/1"), by = "2 months"), 
                    date_labels = "%b", name = "Date") +
-      scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), name = "Rain day frequency (rain days/day)") +
+      scale_y_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1), name = "Probability of rain") +
       scale_linetype_manual(values = c("solid", "longdash")) +
       theme(aspect.ratio = 1) +
-      ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
-                     "estimated rain day frequency (rain days/day)"))
+      #ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
+       #              "estimated rain day frequency (rain days/day)"))
     
-    ##! Figures zm_markov_first_chirps_0.85, zm_markov_first_tamsat_0.85
-    ##! and zm_markov_first_tamsat_4 (Section 4.3.2.3)
     ggsave(here("results",
                 paste0("zambia_", "markov_first", "_product_", thres[i], "_", names(products)[s], ".png")),
            plot = g, width = 12, height = 6)
+  }
+}
+
+for (i in seq_along(thres)) {
+  for(s in seq_along(products)) {
+    curve_labs <- paste0(c("", rep(toupper(names(products)[s]), 5)), types)
+    dat <- predict_stack_all %>%
+      filter(product2 == products[s] & type %in% c("station1", names_thres[i]) & s_doy %in% 92:274)
+    
+    g <- ggplot(dat, aes(x = s_doy_date, y = prob,
+                         colour = lag1, linetype = type)) +
+      geom_line() +
+      facet_wrap(~station) +
+      scale_x_date(
+        breaks = seq.Date(as.Date("1999/11/1"), as.Date("2000/5/1"), by = "2 months"), 
+        date_labels = "%b", 
+        name = "Date"
+      ) +
+      scale_y_continuous(
+        breaks = seq(0, 1, 0.2), 
+        limits = c(0, 1), 
+        name = "Probability of rain"
+      ) +
+      scale_linetype_manual(
+        values = c("solid", "longdash"),
+        labels = c("station1" = "Gauge", "product1" = toupper(names(products)[s])),  
+        name = "Source" 
+      ) +
+      scale_color_manual(
+        name = "State of previous day",
+        labels = c("d" = "No rain", "w" = "Rain"),
+        values = c("d" = "red", "w" = "darkturquoise")  
+      ) +
+      guides(
+        linetype = guide_legend(order = 1),  
+        color = guide_legend(order = 2)     
+      ) +
+      theme(
+        aspect.ratio = 1,
+        legend.spacing = unit(0.5, "cm"),  
+        legend.box = "horizontal",         
+        legend.position = c(0.65, 0.2)
+      )
+    ##! Figures zm_markov_first_chirps_0.85for_paper.jpeg, zm_markov_first_tamsat_0.85for_paper.jpeg
+    ##! and zm_markov_first_tamsat_4for_paper.jpeg (Section 4.3.2.3)
+    ggsave(here("results",
+                paste0("zambia_", "markov_first", "_product_", thres[i], "_", names(products)[s], "for_paper.jpeg")),
+           plot = g, width = 6, height = 6)
   }
 }
 
@@ -788,19 +889,29 @@ ggplot(zm_acc_each, aes(x = rain_cats, y = accuracy, fill = product, group = pro
   labs(x = "Rainfall Intensity categories (mm/day)", y = "Probability of detection") +
   theme(axis.text.x = element_text(size = 8)) +
   labs(fill = "Product") +
+  theme(
+    axis.title.y = element_text(family = "Helvetica", size = 12, face = "bold"), 
+    axis.title.x = element_text(family = "Helvetica", face = "bold"),
+    strip.text = element_text(face = "bold", family = "Helvetica", size = 12), 
+    panel.spacing = unit(0.1, "lines"), 
+    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    panel.grid.minor = element_blank(), 
+    legend.position = c(0.75, 0.15), 
+    text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+  ) +
   facet_wrap(~station)
 
 ##! Figures zm_cats (Section 4.3.2.4)
 ggsave(here("results", 
-            paste0("zambia_", "rain_cats.png")),
+            paste0("Fig16.jpeg")),
        width = 12, height = 6)
 
 
 ## ----calc_adjust_threshold----------------------------------------------------------
 zm_long_st <- zm_long_st %>%
-  mutate(season = ifelse(as.character(month) %in% 5:10, "Dry", 
+  mutate(season = ifelse(as.character(month) %in% 5:10, "Dry",
                          as.character(month)),
-         season = factor(season, levels = c("Dry", 11:12, 1:4), 
+         season = factor(season, levels = c("Dry", 11:12, 1:4),
                          labels = c("Dry", month.abb[c(11:12, 1:4)])),
          product = toupper(substr(product, 1, nchar(as.character(product)) - 5)),
          product = factor(product, levels = c("CHIRPS", "ERA5", "AGERA5", "TAMSAT", "ENACTS"))
@@ -822,16 +933,42 @@ thresh_product <- zm_long_st %>%
 
 ggplot(thresh_month, aes(x = season, y = thres_m, group = station, colour = station)) +
   geom_line() +
-  geom_hline(yintercept = 0.85, colour = "black", linetype = "longdash") +
-  geom_line(data = thresh_product, aes(x = season, y = thres_y, group = 1), 
-            inherit.aes = FALSE, colour = "black", size = 0.8) +
-  scale_color_manual(values = c25[1:7]) +
+  geom_hline(yintercept = 0.85, colour = "black", linetype = "longdash", show.legend = FALSE) +  
+  geom_line(
+    data = thresh_product, 
+    aes(x = season, y = thres_y, group = 1, linetype = "All"),  
+    colour = "black", 
+    size = 0.8
+  ) +
+  scale_color_manual(
+    values = c25[1:7], 
+    name = "Location"  
+  ) +
+  scale_linetype_manual(
+    values = "solid", 
+    name = NULL,       
+    labels = "All"    
+  ) +
   scale_y_continuous(breaks = seq(0, 8, 1)) +
-  labs(x = "Month", y = "Threshold (mm)", group = "Location", colour = "Location") +
-  facet_wrap(~product)
+  labs(x = "Month", y = "Threshold (mm)") +
+  facet_wrap(~product) +
+  theme(
+    legend.position = c(0.85, 0.2),
+    legend.box = "vertical", 
+    strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+    panel.spacing = unit(0.1, "lines"),
+    axis.text = element_text(face = "bold", size = 10, family = "Helvetica"), 
+    text = element_text(face = "bold", size = 10, family = "Helvetica")
+  ) +
+  scale_x_discrete(labels = function(x) ifelse(x == "Dry", "May to Oct", x)) +
+  guides(
+    colour = guide_legend(order = 1),  
+    linetype = guide_legend(order = 2)  
+  ) 
+
 ##! Figure zm_thresh_adjust (Section: 4.3.3)
 ggsave(here("results",  
-            paste0("zambia_", "thres_adjust.png")),
+            paste0("Fig17.jpeg")),
        width = 12, height = 6)
 
 
