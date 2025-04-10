@@ -207,18 +207,48 @@ names(zm_start_era5)[3] <- "Gauge"
 zm_start_era5 <- pivot_longer(zm_start_era5, Gauge:`ERA5 LOCI`, names_to = "Source",
                               names_ptypes = list(Source = factor(levels = c("Gauge", "ERA5", "ERA5 LOCI"))))
 
-g <- ggplot(zm_start_era5, aes(x = syear, y = value, colour = Source, size = Source)) +
+# g <- ggplot(zm_start_era5, aes(x = syear, y = value, colour = Source, size = Source)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_color_manual(values = c("black", c25[1:2])) +
+#   scale_x_continuous("Year", breaks = seq(1980, 2020, 5)) +
+#   scale_y_continuous("Start of rains") +
+#   scale_size_manual(values = c(1, 0.5, 0.5)) +
+#   theme(
+#     legend.position = c(0.85, 0.2),
+#     legend.box = "vertical", 
+#     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+#     panel.spacing = unit(0.1, "lines"),
+#     axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+#     text = element_text(face = "bold", size = 12, family = "Helvetica")
+#   ) +
+#   facet_wrap(~station)
+
+g <- ggplot(zm_start_era5, aes(x = syear, y = as.Date(value, origin = as.Date("1999-07-31")), 
+                               colour = Source, size = Source)) +
   geom_line() +
   geom_point() +
   scale_color_manual(values = c("black", c25[1:2])) +
-  scale_x_continuous("Year", breaks = seq(1980, 2020, 5)) +
-  scale_y_continuous("Start of rains") +
+  scale_x_continuous("", breaks = seq(1980, 2020, 5)) +
+  scale_y_date(
+    "Start of rains",
+    date_labels = "%d %b",  
+    breaks = scales::pretty_breaks(n = 6)  
+  ) +
   scale_size_manual(values = c(1, 0.5, 0.5)) +
+  theme(
+    legend.position = c(0.85, 0.2),
+    legend.box = "vertical", 
+    strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
+    panel.spacing = unit(0.1, "lines"),
+    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    text = element_text(face = "bold", size = 12, family = "Helvetica")
+  ) +
   facet_wrap(~station)
-
 ##! Figure zm_start (Section: 4.3.4)
-ggsave(here("results", "zambia_start_rains_era5_loci.png"),
+ggsave(here("results", "Fig18.jpeg"),
        g, width = 12, height = 6)
+
 
 zm_start_era5 <- zm_start_station
 names(zm_start_era5)[3] <- "start_station"
