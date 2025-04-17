@@ -149,32 +149,30 @@ reshape_enacts_for_map <- function(sf_data, val_col_name){
 
 #total rainfall
 t_rain_df_enacts <- reshape_enacts_for_map(enacts_t_rain_sf, total_rain)
-tamsat_total_rain <- plot_T_rainfall_map(total_means_tamsat_zambia, "(a) TAMSAT", show_legend = FALSE)
-enacts_old_total_rain <- plot_T_rainfall_map(enacts_old_t_rain, "(b) ENACTS2019", show_legend = FALSE)
-enacts_total_rain <- plot_T_rainfall_map(t_rain_df_enacts, "(c) ENACTS", show_legend = TRUE)  
+enacts_old_total_rain <- plot_T_rainfall_map(enacts_old_t_rain, "(a) ENACTS (2019)", show_legend = FALSE)
+enacts_total_rain <- plot_T_rainfall_map(t_rain_df_enacts, "(b) ENACTS", show_legend = FALSE)
+tamsat_total_rain <- plot_T_rainfall_map(total_means_tamsat_zambia, "(c) TAMSAT", show_legend = TRUE)
 
 
 #number of rainy days
 n_rain_df_enacts <- reshape_enacts_for_map(enacts_n_rain_sf, n_rain)
-tamsat_n_rain <- plot_n_rainfall_map(n_means_tamsat_zambia, "(a) TAMSAT", show_legend = FALSE)
-enacts_old_n_rain = plot_n_rainfall_map(enacts_old_n_rain, "(b) ENACTS2019", show_legend = FALSE)
-enacts_n_rain <- plot_n_rainfall_map(n_rain_df_enacts, "(c) ENACTS", show_legend = TRUE)
+enacts_old_n_rain = plot_n_rainfall_map(enacts_old_n_rain, "(a) ENACTS (2019)", show_legend = FALSE)
+enacts_n_rain <- plot_n_rainfall_map(n_rain_df_enacts, "(b) ENACTS", show_legend = FALSE)
+tamsat_n_rain <- plot_n_rainfall_map(n_means_tamsat_zambia, "(c) TAMSAT", show_legend = TRUE)
 
 #mean rain per rainy day
 mean_rain_df_enacts <- reshape_enacts_for_map(enacts_mean_rain_sf, mean_rain)
-enacts_old_mean_rain = plot_m_rain_rainfall_map(enacts_old_mean_rain, "(a) ENACTS2019", show_legend = FALSE)
-chirps_mean_rain <- plot_m_rain_rainfall_map(mean_means_chirps_zambia, "(b) CHIRPS", show_legend = FALSE)
-enacts_mean_rain <- plot_m_rain_rainfall_map(mean_rain_df_enacts, "(c) ENACTS", show_legend = TRUE)
+enacts_old_mean_rain = plot_m_rain_rainfall_map(enacts_old_mean_rain, "(a) ENACTS (2019)", show_legend = FALSE)
+enacts_mean_rain <- plot_m_rain_rainfall_map(mean_rain_df_enacts, "(b) ENACTS", show_legend = FALSE)
+chirps_mean_rain <- plot_m_rain_rainfall_map(mean_means_chirps_zambia, "(c) CHIRPS", show_legend = TRUE)
 
-combined_plot_t_rain <- (tamsat_total_rain | enacts_old_total_rain | enacts_total_rain) +
+combined_plot_t_rain <- (enacts_old_total_rain | enacts_total_rain | tamsat_total_rain) +
   plot_layout(guides = "collect")
-combined_plot_n_rain <- (tamsat_n_rain | enacts_old_n_rain | enacts_n_rain) +
+combined_plot_n_rain <- (enacts_old_n_rain | enacts_n_rain | tamsat_n_rain) +
   plot_layout(guides = "collect")
-combined_plot_mean_rain <- (enacts_old_mean_rain | chirps_mean_rain | enacts_mean_rain) +
+combined_plot_mean_rain <- (enacts_old_mean_rain | enacts_mean_rain | chirps_mean_rain) +
   plot_layout(guides = "collect")
 
 ggsave(here("results", "maps", "Fig1.jpeg"), plot = combined_plot_t_rain, width = 12, height = 5, dpi = 300)
 ggsave(here("results", "maps", "Fig2.jpeg"), plot = combined_plot_n_rain, width = 12, height = 5, dpi = 300)
 ggsave(here("results", "maps", "Fig3.jpeg"), plot = combined_plot_mean_rain, width = 12, height = 5, dpi = 300)
-
-
