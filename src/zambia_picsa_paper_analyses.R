@@ -271,7 +271,10 @@ g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
   scale_y_continuous(limits = c(0, NA)) +
   scale_colour_manual(values = c("black", c25[1:2])) +
   labs(x = "", y = "Total Rainfall (mm/year)") +
-  theme(legend.position = c(0.75, 0.15),
+  theme(legend.position = c(0.75, 0.1),
+        legend.text = element_text(size = 12),          
+        legend.title = element_text(size = 14),         
+        legend.key.size = unit(2, "lines"),   
         strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
         panel.spacing = unit(0.1, "lines"),
         axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
@@ -281,34 +284,6 @@ g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
 ##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
 ggsave(here("results", "Fig4.jpeg"),
        g, width = 12, height = 6)
-
-g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
-  geom_line() +
-  geom_point() +
-  geom_hline(data = mean_df, aes(yintercept = m, colour = Source)) +
-  scale_x_continuous(breaks = seq(1980, 2015, 5), 
-                     limits = c(1978, 2017), expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0, NA)) +
-  scale_colour_manual(values = c("black", c25[1:2])) +
-  labs(x = "", y = "Total Rainfall (mm/year)") +
-  theme(legend.position = c(0.75, 0.15), 
-        strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
-        panel.spacing = unit(0.1, "lines"),
-        panel.grid.major = element_blank(), 
-        axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
-        panel.grid.minor = element_blank(), 
-        #legend.title = element_blank(), 
-        panel.background = element_rect(fill = "white", colour = "white"), 
-        text = element_text(face = "bold", size = 12, family = "Helvetica"), 
-        #axis.line = element_line(color = "black", linewidth = 0.5),
-        axis.line.x = element_line(color = "black", linewidth = 0.2), 
-        axis.line.y = element_line(color = "black", linewidth = 0.2) 
-        ) +
-  facet_wrap(~station) 
-##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
-ggsave(here("results", "Fig4.png"),
-       g, width = 12, height = 6)
-
 
 ## ----yearly_n_obs, results="asis"---------------------------------------------------
 dat <- gof_syear %>% 
@@ -380,6 +355,9 @@ g <- ggplot(liv_year, aes(x = syear, y = n_rain, colour = Source)) +
   labs(x = "", y = "Rain day (> 0.85) frequency (rain day/year)") +
   theme(
     legend.position = c(0.85, 0.15),
+    legend.text = element_text(size = 12),          
+    legend.title = element_text(size = 14),         
+    legend.key.size = unit(2, "lines"),
     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
     panel.spacing = unit(0.1, "lines"),
     axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
@@ -452,6 +430,9 @@ g <- ggplot(liv_year, aes(x = syear, y = mean_rain, colour = Source)) +
   #ggtitle("Gauge vs estimate August to July mean rain intensity at Livingstone") +
   theme(
     legend.position = c(0.85, 0.15),
+    legend.text = element_text(size = 12),          
+    legend.title = element_text(size = 14),         
+    legend.key.size = unit(2, "lines"),
     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
     panel.spacing = unit(0.1, "lines"),
     axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
@@ -664,7 +645,7 @@ f_first_order_product <- pr_rainday1 ~ ((cos(s_doy * 1 * 2 * pi/366) +
 
 predict_stack_lst <- list()
 for(s in seq_along(stations)) {
-  predict_df <- expand.grid(station = stations[s], s_doy = 1:366, wd = c("d", "w"))
+  predict_df <- expand.grid(station = stations[s], s_doy = 1:366, wd = c("w", "d"))
   predict_df$s_doy_date = as.Date(predict_df$s_doy, origin = as.Date("1999/07/31"))
   dat <- zambia_markov %>%
     filter(station == stations[s])
@@ -804,8 +785,8 @@ for (i in seq_along(thres)) {
       ) +
       scale_color_manual(
         name = "State of previous day",
-        labels = c("d" = "No rain", "w" = "Rain"),
-        values = c("d" = "red", "w" = "darkturquoise")  
+        labels = c("w" = "Rain", "d" = "No rain"),
+        values = c("w" = "darkturquoise", "d" = "red")  
       ) +
       guides(
         linetype = guide_legend(order = 1),  

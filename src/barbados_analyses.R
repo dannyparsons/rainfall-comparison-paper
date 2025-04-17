@@ -21,7 +21,8 @@ library(dplyr)
 source(here("src", "helper_funs.R"))
 
 zm <- readRDS(here("data", "station", "cleaned", "husbands_gridded.RDS"))
-zm <- zm %>% select(station, date, rain, tmax, tmin, month, year, year_groups, chirps_rain, era5_rain)
+zm <- zm %>% 
+  dplyr::select(station, date, rain, tmax, tmin, month, year, year_groups, chirps_rain, era5_rain)
 # 1 Jan = 1
 s_doy_start <- 1
 zm <- zm %>% mutate(doy = yday_366(date),
@@ -235,7 +236,7 @@ stats_tables_month <- function(df, obj_col, obj_stats = comp_stats) {
 ## ----yearly_total_plots-------------------------------------------------------------
 hus_year <- gof_pr %>%
   unnest(cols = c(data)) %>%
-  select(product, station, syear, total_rain__station, total_rain) %>%  
+  dplyr::select(product, station, syear, total_rain__station, total_rain) %>%  
   mutate(total_rain__station = ifelse(is.na(total_rain), NA, total_rain__station),
          total_rain = ifelse(is.na(total_rain__station), NA, total_rain)) %>%
   pivot_longer(cols = c("total_rain__station", "total_rain"), 
@@ -258,7 +259,10 @@ g <- ggplot(hus_year, aes(x = syear, y = total_rain, colour = Source)) +
   scale_y_continuous(limits = c(0, NA)) +
   labs(x = "", y = "Total Rainfall (mm/year)") +
   theme(
-    legend.position = c(0.85, 0.15),
+    legend.position = "right",
+    legend.text = element_text(size = 12),          
+    legend.title = element_text(size = 14),         
+    legend.key.size = unit(2, "lines"),
     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
     panel.spacing = unit(0.3, "lines"),
     #axis.text.x = element_text(angle = 45),
@@ -298,7 +302,7 @@ df <- gof_syear %>%
          MAE = purrr::map_dbl(gof__total_rain, "MAE")) %>%
   pivot_longer(cols = c("r", "pbias", "MAE"), names_to = "metric") %>%
   mutate(metric = factor(metric, levels = c("r", "pbias", "MAE"))) %>%
-  select(station, product, metric, value) %>%
+  dplyr::select(station, product, metric, value) %>%
   mutate(value = ifelse(metric == "r", format(value, digits = 2), 
                         round(value))) %>%
   pivot_wider(names_from = "product", values_from = "value") %>%
@@ -384,7 +388,7 @@ monthly_plots <- function(df, stat_pr, stat_st, product_name) {
 ## ----monthly_plots_total_rain_chirps------------------------------------------------
 hus_month <- gof_pr_month %>%
   unnest(cols = c(data)) %>%
-  select(product, station, syear, month_abb, total_rain__station, total_rain) %>%  
+  dplyr::select(product, station, syear, month_abb, total_rain__station, total_rain) %>%  
   mutate(total_rain__station = ifelse(is.na(total_rain), NA, total_rain__station),
          total_rain = ifelse(is.na(total_rain__station), NA, total_rain)) %>%
   pivot_longer(cols = c("total_rain__station", "total_rain"), 
@@ -411,7 +415,10 @@ g <- ggplot(hus_month %>% filter(product == "CHIRPS"),
   labs(x = "Year", y = "Total Rainfall (mm/month)") +
   #ggtitle("Gauge vs CHIRPS Monthly total rainfall at Husbands") +
   theme(
-    legend.position = c(0.35, 0.9),
+    legend.position = "right",
+    legend.text = element_text(size = 12),          
+    legend.title = element_text(size = 14),         
+    legend.key.size = unit(2, "lines"),
     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
     panel.spacing = unit(0.3, "lines"),
     axis.text.x = element_text(angle = 45),
