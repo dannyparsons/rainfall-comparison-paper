@@ -398,20 +398,23 @@ hus_month <- gof_pr_month %>%
                                       Gauge = "total_rain__station", Estimate = "total_rain"),
          Source = factor(Source, levels = c("Gauge", "Estimate")),
          product = toupper(substr(product, 1, nchar(product) - 5)),
-         product = factor(product, levels = c("CHIRPS", "ERA5", "IMERG")))
+         product = factor(product, levels = c("CHIRPS", "ERA5")))
 
-mean_df <- hus_month %>%
+hus_month_chirps <- hus_month %>% filter(product == "CHIRPS") %>%
+  mutate(Source = ifelse(Source == "Estimate", "CHIRPS", "Gauge"))
+
+mean_df <- hus_month_chirps %>%
   group_by(product, Source, month_abb) %>%
   summarise(m = mean(total_rain, na.rm = TRUE))
 
-g <- ggplot(hus_month %>% filter(product == "CHIRPS"), 
+g <- ggplot(hus_month_chirps, 
             aes(x = syear, y = total_rain, colour = Source)) +
   geom_line() +
   geom_point() +
   geom_hline(data = mean_df %>% filter(product == "CHIRPS"), aes(yintercept = m, colour = Source)) +
   scale_x_continuous(breaks = seq(1980, 2020, 5), limits = c(1978, 2022), expand = c(0, 0)) +
   scale_y_continuous(limits = c(0, NA)) +
-  scale_colour_discrete(labels = c("Gauge", "CHIRPS")) +
+  scale_colour_discrete(labels = c("CHIRPS", "Gauge")) +
   labs(x = "Year", y = "Total Rainfall (mm/month)") +
   #ggtitle("Gauge vs CHIRPS Monthly total rainfall at Husbands") +
   theme(
@@ -427,7 +430,7 @@ g <- ggplot(hus_month %>% filter(product == "CHIRPS"),
   ) +
   facet_wrap(~ month_abb)+
   scale_color_manual(
-    values = c("Gauge" = "black", "Estimate" = "dodgerblue2"),  
+    values = c("CHIRPS" = "dodgerblue2", "Gauge" = "black"),  
     name = "Source" 
   )
 g
