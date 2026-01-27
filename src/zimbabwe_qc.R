@@ -152,8 +152,8 @@ display_daily(zim_five_stations %>% filter(station == "Plumtree" & year == 2019)
 # No rain from 24th Jan - 12th March (> 0.85mm), this looks plausible. 
 
 # 2. Buffalo Range, 2004 and 2021: Both had no rain in March
-# 2004: Rain on the 1st April, but maybe coincidence? Slightly suspicious, what about end of February? 
-# 2021: ...
+# 2004: 0mm, 3mm, 2mm, 0mm rain on February 26th-29th; 13.2mm on April 1st, then <0.85mm until April 11th. Maybe coincidence, but slightly suspicious.
+# 2021: 0mm 19th-26th Feb; 15mm 27th Feb; 0.4mm 28th Feb. 0mm for all of April, until May 23rd. Unsure.
 
 * For 2021, no rain until May 23rd that year, so, they were in the dry season?
 Might have been a short rainy season. 
