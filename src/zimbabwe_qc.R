@@ -147,42 +147,58 @@ display_daily(zim_five_stations %>% filter(station == "Plumtree" & year == 2019)
               Stations = "Plumtree", Years = 2019, Variables = "rain")
 
 
+# Major drought years in 1991-92, 1994-95, 2002-03, 2015-16 in our areas from this image: https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003
+# and supported here: https://www.weatherzw.org.zw/news/drought-occurrence-in-zimbabwe/
+# Buffalo Range, Chisumbanje, and Masvingo are not *too* vulnerable.
+
 # 1. Buffalo Range, 1992: Plausible.
 # No rain in February at all.
-# No rain from 24th Jan - 12th March (> 0.85mm), this looks plausible. 
+# No rain from 24th Jan - 12th March (> 0.85mm), this looks plausible.
+# Drought was reported / Severe El Nino year [https://www.weatherzw.org.zw/news/drought-occurrence-in-zimbabwe/]
+# From this image it looks plausible https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003
 
-# 2. Buffalo Range, 2004 and 2021: Both had no rain in March.
-# 2004: 0mm, 3mm, 2mm, 0mm rain on February 26th-29th; 13.2mm on April 1st, then <0.85mm until April 11th. Maybe coincidence, but slightly suspicious.
+# 2. Buffalo Range, 2004 and 2021: Both had no rain in March: Suspicious.
+# 2004: 0mm, 3mm, 2mm, 0mm rain on February 26th-29th; 13.2mm on April 1st, then <0.85mm until April 11th. Maybe coincidence, but slightly suspicious. 
+# From https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003 it is possible?
 # 2021: 0mm 19th-26th Feb; 15mm 27th Feb; 0.4mm 28th Feb. 0mm for all of April, until May 23rd. Might have been a short rainy season.
 
-# 3. Chisumbanje: No rain in March: Unusual but not impossible.
+# 3. Chisumbanje: No rain in March: Unusual but not impossible. 
+
 # a) 1982: There's also no rain in April, May, June. May be plausible and not unusual. 
 # b) 2005: No rain in March, until November. Slightly unusual but not impossible.
 # c) 2008 and 2011: No rain in March, until October. Slightly unusual but not impossible.
 # d) 2009: No rain in March for the rest of the year. Suspicious: There's then no rainy season in this year (2009-2010 are all 0 in the rainy season, see 4.)  
+# For 2009 (d) there was an El Nino drought reported in Manicaland (Chisumbanje) so this could be plausible. 
 
-# 4. Chisumbanje, 2002-2003; 2009-2010: Looks implausible (Need to look into Droughts)
+# 4. Chisumbanje, 2002-2003; 2009-2010: Looks implausible, but they were El Nino Years, and the graphs do support it.
 # There's no rainfall in the 5 month period we are looking at.
 # Almost certainly incorrectly entered missing values. We'll probably change this to NA. 
-# Chisumbanje is close to Buffalo Range, so I’d have expected to see similar 0mm patterns in Buffalo Range if these values were real.
-# From what I can find online, severe drought episodes were recorded in 1991-92, 1994-95, 2002-03, 2015-16, and 2018-19, primarily affecting Matabeleland North and South rather than Manicaland (where Chisumbanje is located). That matches our 2002-03 drought period, but doesn't explain the apparent dryness in 2009-2010.
+# Chisumbanje is close to Buffalo Range, so I'd have expected to see similar 0mm patterns in Buffalo Range if these values were real.
+# Drought episodes were recorded in 2002-03 and 09-10, and these are given as Moderate El Nino Years [https://www.weatherzw.org.zw/news/drought-occurrence-in-zimbabwe/]
+# We can see these are droughts here https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003
+# But, why are we not getting droughty values in the severe drought years (91-92, 15-16)
 
-# Chisumbanje is in Manicaland, and I can see that Manicaland is reported to have experienced a drought in 2010, but it’s unclear whether this refers to the 2009–10 season or 2010–11.
-
-# 5. Chisumbanje: 2015 December: Extreme but plausible. (Need to look into Droughts)
+# 5. Chisumbanje: 2015 December: Plausible (Severe El Nino)
 # Only 4 rainy days in November, and 2 rainy days in January. Looks like an extreme year but possible. 
+# This is a severe El Nino year and affects that area, so I think this is plausible. [https://www.weatherzw.org.zw/news/drought-occurrence-in-zimbabwe/]
+# Plausible from this image https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003
 
-# 6. Masvingo, 2004 March: Looks odd (Need to look into Droughts)
+# 6. Masvingo, 2004 March: Unclear
 # high rainfall at the end of Feb (26th: 22.4mm; 27th: 25.2mm; 28th: 83.9mm; 29th: 0.2mm) and start of April (1st) so maybe odd? 
+# Appears to be some signs of drought - https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003 - but unsure why 2003-04 is worse for Masvingo than 2015-16?
 
-# 7. Mt Darwin 1994 November: Looks slightly suspicious
+# 7. Mt Darwin 1994 November: Plausible (El Nino)
 # Some rainfall in October and December. The average is 5 days so not impossible. 
+# Flagged as a moderate El Nino year, so possible. [https://www.weatherzw.org.zw/news/drought-occurrence-in-zimbabwe/]
+# And in a drought zone here: https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003
 
 # 8. Mt Darwin 2020 March: Plausible
 # Little rainfall at the end of Feb, and no rainfall until November. 
 
-#9. Plumtree 2019 March: Seems possible in a bad year
+#9. Plumtree 2019 March: Plausible
 # Feb 19th - April 8th is <0.85mm rainfall.  
+# This was a drought year, but it is unclear where in ZM [Drought Resilience Profiles Zimbabwe - https://www.ciwaprogram.org/wp-content/uploads/SADRI_Drought_Resilience_Profile_Zimbabwe.pdf]
+# Looks like it could have affected Plumtree here: https://www.mdpi.com/2071-1050/12/3/752#sustainability-12-00752-f003
 
 ### TODO ###########################################################
 # 
