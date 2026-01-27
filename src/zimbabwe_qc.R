@@ -151,26 +151,38 @@ display_daily(zim_five_stations %>% filter(station == "Plumtree" & year == 2019)
 # No rain in February at all.
 # No rain from 24th Jan - 12th March (> 0.85mm), this looks plausible. 
 
-# 2. Buffalo Range, 2004 and 2021: Both had no rain in March
+# 2. Buffalo Range, 2004 and 2021: Both had no rain in March.
 # 2004: 0mm, 3mm, 2mm, 0mm rain on February 26th-29th; 13.2mm on April 1st, then <0.85mm until April 11th. Maybe coincidence, but slightly suspicious.
-# 2021: 0mm 19th-26th Feb; 15mm 27th Feb; 0.4mm 28th Feb. 0mm for all of April, until May 23rd. Unsure.
+# 2021: 0mm 19th-26th Feb; 15mm 27th Feb; 0.4mm 28th Feb. 0mm for all of April, until May 23rd. Might have been a short rainy season.
 
-* For 2021, no rain until May 23rd that year, so, they were in the dry season?
-Might have been a short rainy season. 
-
-# 3. Chisumbanje: No rain in March.
+# 3. Chisumbanje: No rain in March: Unusual but not impossible.
 # a) 1982: There's also no rain in April, May, June. May be plausible and not unusual. 
 # b) 2005: No rain in March, until November. Slightly unusual but not impossible.
 # c) 2008 and 2011: No rain in March, until October. Slightly unusual but not impossible.
 # d) 2009: No rain in March for the rest of the year. Suspicious: There's then no rainy season in this year (2009-2010 are all 0 in the rainy season, see 4.)  
 
-# 4. Chisumbanje, 2002-2003; 2009-2010
+# 4. Chisumbanje, 2002-2003; 2009-2010: Looks implausible (Need to look into Droughts)
 # There's no rainfall in the 5 month period we are looking at.
 # Almost certainly incorrectly entered missing values. We'll probably change this to NA. 
 # Chisumbanje is close to Buffalo Range, so I’d have expected to see similar 0mm patterns in Buffalo Range if these values were real.
 # From what I can find online, severe drought episodes were recorded in 1991-92, 1994-95, 2002-03, 2015-16, and 2018-19, primarily affecting Matabeleland North and South rather than Manicaland (where Chisumbanje is located). That matches our 2002-03 drought period, but doesn't explain the apparent dryness in 2009-2010.
 
 # Chisumbanje is in Manicaland, and I can see that Manicaland is reported to have experienced a drought in 2010, but it’s unclear whether this refers to the 2009–10 season or 2010–11.
+
+# 5. Chisumbanje: 2015 December: Extreme but plausible. (Need to look into Droughts)
+# Only 4 rainy days in November, and 2 rainy days in January. Looks like an extreme year but possible. 
+
+# 6. Masvingo, 2004 March: Looks odd (Need to look into Droughts)
+# high rainfall at the end of Feb (26th: 22.4mm; 27th: 25.2mm; 28th: 83.9mm; 29th: 0.2mm) and start of April (1st) so maybe odd? 
+
+# 7. Mt Darwin 1994 November: Looks slightly suspicious
+# Some rainfall in October and December. The average is 5 days so not impossible. 
+
+# 8. Mt Darwin 2020 March: Plausible
+# Little rainfall at the end of Feb, and no rainfall until November. 
+
+#9. Plumtree 2019 March: Seems possible in a bad year
+# Feb 19th - April 8th is <0.85mm rainfall.  
 
 ### TODO ###########################################################
 # 
