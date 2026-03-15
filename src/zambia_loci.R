@@ -241,13 +241,13 @@ g <- ggplot(zm_start_era5, aes(x = syear, y = as.Date(value, origin = as.Date("1
     legend.box = "vertical", 
     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
     panel.spacing = unit(0.1, "lines"),
-    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
-    text = element_text(face = "bold", size = 12, family = "Helvetica")
+    axis.text = element_text(size = 12, family = "Helvetica"), 
+    text = element_text(size = 12, family = "Helvetica")
   ) +
   facet_wrap(~station)
 ##! Figure zm_start (Section: 4.3.4)
-ggsave(here("results", "Fig18.jpeg"),
-       g, width = 12, height = 6)
+ggsave(here("results", "Fig18.pdf"),
+       g, width = 12, height = 6, dpi = 600)
 
 
 zm_start_era5 <- zm_start_station

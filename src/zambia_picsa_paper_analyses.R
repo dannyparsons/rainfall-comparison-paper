@@ -277,12 +277,12 @@ g <- ggplot(dat, aes(x = syear, y = total_rain, colour = Source)) +
         legend.key.size = unit(2, "lines"),   
         strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
         panel.spacing = unit(0.1, "lines"),
-        axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
-        text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+        axis.text = element_text(size = 12, family = "Helvetica"), 
+        text = element_text(size = 12, family = "Helvetica"), 
         ) +
   facet_wrap(~station) 
 ##! Possible alternative to figure zm_tamsat_total and zm_era5_total (Section 4.3.2.1)
-ggsave(here("results", "Fig4.jpeg"),
+ggsave(here("results", "Fig4.pdf"), dpi = 600,
        g, width = 12, height = 6)
 
 ## ----yearly_n_obs, results="asis"---------------------------------------------------
@@ -573,14 +573,12 @@ for(s in seq_along(products)) {
     scale_linetype_manual(values = c("solid", rep("longdash", 5)), 
                           labels = curve_labs,
                           name = "Curve") +
-    theme(aspect.ratio = 0.5) #+
-    #ggtitle(paste0("Gauge and ", toupper(names(products)[s]), " ",
-                   #"estimated rain day frequency (rain days/day) at various thresholds"))
+    theme(aspect.ratio = 0.5)
   ##! Figures zm_markov_zero_tamsat, zm_markov_zero_chirps 
   ##! and zm_markov_zero_era5 (Section 4.3.2.2)
   ggsave(here("results", 
-              paste0("zambia_", "markov_zero", "_product_", names(products)[s], ".jpeg")),
-         plot = g, width = 12, height = 6)
+              paste0("zambia_", "markov_zero", "_product_", names(products)[s], "1000.pdf")),
+         plot = g, width = 12, height = 6, dpi = 1000)
 }
 
 
@@ -871,21 +869,21 @@ ggplot(zm_acc_each, aes(x = rain_cats, y = accuracy, fill = product, group = pro
   theme(axis.text.x = element_text(size = 8)) +
   labs(fill = "Product") +
   theme(
-    axis.title.y = element_text(family = "Helvetica", size = 12, face = "bold"), 
-    axis.title.x = element_text(family = "Helvetica", face = "bold"),
-    strip.text = element_text(face = "bold", family = "Helvetica", size = 12), 
+    axis.title.y = element_text(family = "Helvetica", size = 12), 
+    axis.title.x = element_text(family = "Helvetica"),
+    strip.text = element_text(family = "Helvetica", size = 12), 
     panel.spacing = unit(0.1, "lines"), 
-    axis.text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    axis.text = element_text(size = 12, family = "Helvetica"), 
     panel.grid.minor = element_blank(), 
     legend.position = c(0.75, 0.15), 
-    text = element_text(face = "bold", size = 12, family = "Helvetica"), 
+    text = element_text(size = 12, family = "Helvetica"), 
   ) +
   facet_wrap(~station)
 
 ##! Figures zm_cats (Section 4.3.2.4)
 ggsave(here("results", 
-            paste0("Fig16.jpeg")),
-       width = 12, height = 6)
+            paste0("Fig16.pdf")),
+       width = 12, height = 6, dpi = 600)
 
 
 ## ----calc_adjust_threshold----------------------------------------------------------
@@ -938,8 +936,8 @@ ggplot(thresh_month, aes(x = season, y = thres_m, group = station, colour = stat
     legend.box = "vertical", 
     strip.text.y = element_text(margin = margin(r = 1, l = 1)), 
     panel.spacing = unit(0.1, "lines"),
-    axis.text = element_text(face = "bold", size = 10, family = "Helvetica"), 
-    text = element_text(face = "bold", size = 10, family = "Helvetica")
+    axis.text = element_text(size = 10, family = "Helvetica"), 
+    text = element_text(size = 10, family = "Helvetica")
   ) +
   scale_x_discrete(labels = function(x) ifelse(x == "Dry", "May to Oct", x)) +
   guides(
@@ -949,8 +947,8 @@ ggplot(thresh_month, aes(x = season, y = thres_m, group = station, colour = stat
 
 ##! Figure zm_thresh_adjust (Section: 4.3.3)
 ggsave(here("results",  
-            paste0("Fig17.jpeg")),
-       width = 12, height = 6)
+            paste0("Fig17.pdf")),
+       width = 12, height = 6, dpi = 600)
 
 
 
